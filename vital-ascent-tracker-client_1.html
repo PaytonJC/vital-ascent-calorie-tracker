@@ -1,0 +1,1541 @@
+<title>Vital Ascent Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#0b0a08;
+    --surface:#161310;
+    --surface-2:#1f1a13;
+    --surface-3:#241d14;
+    --border:#332a1c;
+    --border-soft:#241f16;
+    --gold:#c8a24a;
+    --gold-bright:#f0c869;
+    --gold-soft:#8a7442;
+    --gold-dim:#5c4f30;
+    --text:#f2ece0;
+    --text-dim:#a89a7c;
+    --text-faint:#71654e;
+    --success:#8fb377;
+    --warning:#d99a4e;
+    --danger:#d16a5a;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(200,162,74,0.07), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Archivo', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding:0 0 80px;
+  }
+
+  h1,h2,h3{ font-family:'Fraunces', Georgia, serif; text-wrap:balance; margin:0; }
+
+  .mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  a, button, input{ font-family:inherit; }
+
+  ::selection{ background:var(--gold-dim); color:var(--gold-bright); }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    background:rgba(11,10,8,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .topbar-inner{
+    max-width:920px; margin:0 auto;
+    padding:22px 24px 18px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:16px; flex-wrap:wrap;
+  }
+  .brand{ display:flex; flex-direction:column; gap:3px; }
+  .brand-mark{
+    font-family:'Fraunces', serif;
+    font-weight:700; font-size:1.5rem; letter-spacing:0.01em;
+    color:var(--gold-bright);
+    line-height:1;
+  }
+  .brand-mark em{ font-style:normal; color:var(--text); font-weight:500; }
+  .brand-tag{
+    font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--text-faint);
+  }
+
+  .date-nav{ display:flex; align-items:center; gap:8px; }
+  .date-btn{
+    width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--border); background:var(--surface);
+    color:var(--gold); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:1rem; line-height:1; transition:border-color .15s, color .15s;
+  }
+  .date-btn:hover{ border-color:var(--gold-soft); color:var(--gold-bright); }
+  .date-btn:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--gold); outline-offset:2px;
+  }
+  .date-label{
+    font-size:0.86rem; color:var(--text); min-width:150px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+    position:relative;
+  }
+  .date-label .d-main{ font-weight:600; }
+  .date-label .d-today{ font-size:0.66rem; color:var(--gold-soft); letter-spacing:.08em; text-transform:uppercase; }
+  .date-input{
+    position:absolute; inset:0; opacity:0; cursor:pointer; border:0; width:100%; height:100%;
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap{ max-width:920px; margin:0 auto; padding:28px 24px 0; display:flex; flex-direction:column; gap:22px; }
+
+  .card{
+    background:linear-gradient(180deg, var(--surface), var(--surface) 60%, var(--surface-2));
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+  }
+
+  /* ---------- Hero summary ---------- */
+  .hero{ padding:28px 30px; display:grid; grid-template-columns:auto 1fr; gap:34px; align-items:center; }
+  @media (max-width:640px){ .hero{ grid-template-columns:1fr; justify-items:center; } }
+
+  .ring-wrap{ position:relative; width:172px; height:172px; flex:none; }
+  .ring-center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px;
+  }
+  .ring-num{ font-family:'Fraunces', serif; font-weight:700; font-size:1.9rem; color:var(--gold-bright); line-height:1; }
+  .ring-sub{ font-size:0.68rem; color:var(--text-faint); letter-spacing:.1em; text-transform:uppercase; }
+  .ring-goal{ font-size:0.72rem; color:var(--text-dim); margin-top:4px; }
+
+  .macros{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .macro-row{ display:grid; grid-template-columns:74px 1fr 90px; align-items:center; gap:12px; }
+  .macro-name{ font-size:0.78rem; color:var(--text-dim); letter-spacing:.03em; }
+  .bar-track{ height:8px; border-radius:99px; background:var(--surface-3); border:1px solid var(--border-soft); overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg, var(--gold-dim), var(--gold)); transition:width .4s ease; }
+  .bar-fill.over{ background:linear-gradient(90deg, var(--warning), var(--danger)); }
+  .macro-val{ font-size:0.78rem; text-align:right; color:var(--text); }
+  .macro-val .g{ color:var(--text-faint); font-size:0.72rem; }
+
+  .goals-toggle{
+    grid-column:1/-1; justify-self:start;
+    background:none; border:none; color:var(--gold-soft); font-size:0.74rem;
+    letter-spacing:.06em; text-transform:uppercase; cursor:pointer; padding:2px 0;
+    border-bottom:1px dotted var(--gold-dim);
+  }
+  .goals-toggle:hover{ color:var(--gold-bright); }
+
+  .goals-panel{
+    grid-column:1/-1;
+    display:none;
+    border-top:1px solid var(--border-soft);
+    margin-top:6px; padding-top:18px;
+    gap:14px;
+    grid-template-columns:repeat(4, 1fr);
+  }
+  .goals-panel.open{ display:grid; }
+  @media (max-width:640px){ .goals-panel{ grid-template-columns:1fr 1fr; } }
+  .goal-field label{ display:block; font-size:0.68rem; color:var(--text-faint); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+  .goal-field input{
+    width:100%; background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:9px 10px; font-size:0.9rem;
+  }
+  .goals-save{
+    grid-column:1/-1; justify-self:start; margin-top:4px;
+    background:var(--gold); color:#1a1409; border:none; font-weight:600;
+    padding:9px 18px; border-radius:99px; cursor:pointer; font-size:0.8rem; letter-spacing:.02em;
+    transition:background .15s;
+  }
+  .goals-save:hover{ background:var(--gold-bright); }
+
+  /* ---------- AI quick log ---------- */
+  .ai-card{ padding:22px 26px 24px; }
+  .ai-input-row{ display:flex; gap:12px; align-items:flex-end; }
+  .ai-textarea{
+    flex:1; resize:vertical; min-height:44px; max-height:180px;
+    background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:11px 12px; font-size:0.92rem; font-family:inherit; line-height:1.4;
+  }
+  .ai-textarea::placeholder{ color:var(--text-faint); }
+  .ai-textarea:hover{ border-color:var(--gold-dim); }
+  .ai-go-btn{ flex:none; }
+  .ai-go-btn:disabled{ opacity:.5; cursor:default; }
+  .ai-status{ font-size:0.76rem; color:var(--text-faint); margin-top:10px; min-height:1.1em; }
+  .ai-status.err{ color:var(--danger); }
+  .ai-status.busy{ color:var(--gold-soft); }
+  .ai-status.busy::before{ content:"✦ "; }
+
+  .ai-draft-list{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+  .ai-draft-row{ padding:14px; border-radius:var(--radius-md); background:var(--surface-2); border:1px solid var(--border-soft); }
+  .ai-draft-top{ display:flex; align-items:flex-end; gap:10px; margin-bottom:10px; }
+  .ai-draft-top .field{ flex:1; min-width:0; }
+  .ai-draft-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+  @media (max-width:640px){ .ai-draft-grid{ grid-template-columns:1fr 1fr; } }
+  .ai-draft-remember{ display:flex; align-items:center; gap:7px; font-size:0.74rem; color:var(--text-dim); margin-top:12px; cursor:pointer; }
+  .ai-draft-remember input{ accent-color:var(--gold); }
+  .ai-draft-del{
+    width:26px; height:26px; border-radius:50%; border:1px solid var(--border); flex:none;
+    background:transparent; color:var(--text-faint); cursor:pointer; font-size:0.9rem;
+    display:flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .ai-draft-del:hover{ border-color:var(--danger); color:var(--danger); }
+  .ai-draft-actions{ display:flex; align-items:center; gap:14px; margin-top:14px; flex-wrap:wrap; }
+  .ai-draft-discard{
+    background:none; border:1px solid var(--gold-dim); color:var(--gold-soft);
+    font-size:0.78rem; padding:9px 16px; border-radius:99px; cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .ai-draft-discard:hover{ border-color:var(--gold); color:var(--gold-bright); }
+  @media (max-width:640px){ .ai-input-row{ flex-direction:column; align-items:stretch; } }
+
+  /* ---------- Food library ---------- */
+  .lib-card{ padding:22px 26px 24px; }
+  .lib-head{ display:flex; flex-direction:column; gap:14px; margin-bottom:16px; }
+  .lib-title-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .lib-title-wrap{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  .lib-title-hint{ font-size:0.74rem; color:var(--text-faint); }
+  .lib-new-toggle{
+    background:none; border:1px solid var(--gold-dim); color:var(--gold-soft);
+    font-size:0.74rem; letter-spacing:.03em; padding:7px 15px; border-radius:99px; cursor:pointer;
+    white-space:nowrap; transition:border-color .15s, color .15s;
+  }
+  .lib-new-toggle:hover{ border-color:var(--gold); color:var(--gold-bright); }
+  .lib-search{
+    width:100%; background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:10px 12px; font-size:0.88rem;
+  }
+  .lib-search::placeholder{ color:var(--text-faint); }
+
+  .lib-new-form{ display:none; padding:16px; margin-bottom:16px; background:var(--surface-3); border:1px solid var(--border-soft); border-radius:var(--radius-md); }
+  .lib-new-form.open{ display:block; }
+  .lib-new-grid{ display:grid; grid-template-columns:2fr 1.3fr repeat(4, 1fr); gap:10px; }
+  @media (max-width:760px){ .lib-new-grid{ grid-template-columns:1fr 1fr; } }
+  .lib-new-actions{ display:flex; align-items:center; gap:14px; margin-top:12px; }
+
+  .lib-list{ display:flex; flex-direction:column; gap:8px; max-height:440px; overflow-y:auto; padding-right:2px; }
+  .lib-row{
+    display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px;
+    padding:12px 14px; border-radius:var(--radius-sm);
+    background:var(--surface-2); border:1px solid var(--border-soft);
+    cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .lib-row:hover{ border-color:var(--gold-dim); background:var(--surface-3); }
+  .lib-row:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .lib-main{ min-width:0; pointer-events:none; }
+  .lib-name{ font-size:0.9rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lib-serving{ font-size:0.72rem; color:var(--text-faint); margin-top:3px; }
+
+  .lib-controls{ display:flex; align-items:center; gap:8px; flex:none; }
+  .lib-servings{
+    width:58px; background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:7px 6px; font-size:0.84rem; text-align:center;
+  }
+  .lib-computed{ font-size:0.72rem; color:var(--gold-bright); font-family:'IBM Plex Mono', monospace; min-width:60px; text-align:right; white-space:nowrap; }
+  .lib-add-btn{
+    background:var(--gold); color:#1a1409; border:none; font-weight:700;
+    padding:8px 15px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.8rem;
+    white-space:nowrap; transition:background .15s;
+  }
+  .lib-add-btn:hover{ background:var(--gold-bright); }
+  .lib-add-btn.just-added{ background:var(--success); }
+  .lib-del{
+    width:24px; height:24px; border-radius:50%; border:1px solid var(--border);
+    background:transparent; color:var(--text-faint); cursor:pointer; font-size:0.9rem;
+    display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;
+  }
+  .lib-del:hover{ border-color:var(--danger); color:var(--danger); }
+  @media (max-width:600px){
+    .lib-row{ grid-template-columns:1fr; }
+    .lib-controls{ justify-content:space-between; }
+  }
+  .gw-note{ font-size:0.72rem; color:var(--text-faint); margin-top:12px; line-height:1.4; }
+
+  /* ---------- Entry form ---------- */
+  .form-card{ padding:22px 26px 24px; }
+  .form-title-hint{ font-size:0.74rem; color:var(--text-faint); font-weight:400; margin-left:8px; }
+  .form-title{ font-size:1.05rem; font-weight:600; color:var(--text); margin-bottom:16px; }
+  .form-grid{
+    display:grid; grid-template-columns:2fr repeat(4, 1fr) auto; gap:10px; align-items:end;
+  }
+  @media (max-width:760px){ .form-grid{ grid-template-columns:1fr 1fr; } }
+  .field label{ display:block; font-size:0.66rem; color:var(--text-faint); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+  .field input{
+    width:100%; background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:10px 11px; font-size:0.92rem;
+  }
+  .field input::placeholder{ color:var(--text-faint); }
+  .field input:hover{ border-color:var(--gold-dim); }
+  .add-btn{
+    background:var(--gold); color:#1a1409; border:none; font-weight:700;
+    padding:11px 20px; border-radius:var(--radius-sm); cursor:pointer; font-size:0.88rem;
+    white-space:nowrap; transition:background .15s, transform .1s;
+  }
+  .add-btn:hover{ background:var(--gold-bright); }
+  .add-btn:active{ transform:translateY(1px); }
+  .form-err{ font-size:0.76rem; color:var(--danger); margin-top:10px; min-height:1em; }
+
+  /* ---------- Log ---------- */
+  .log-card{ padding:22px 26px 26px; }
+  .log-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+  .log-title{ font-size:1.05rem; font-weight:600; }
+  .log-count{ font-size:0.76rem; color:var(--text-faint); }
+
+  .log-list{ display:flex; flex-direction:column; gap:8px; }
+  .log-empty{ padding:26px 0; text-align:center; color:var(--text-faint); font-size:0.86rem; }
+  .log-empty .sub{ font-size:0.76rem; margin-top:4px; color:var(--text-faint); opacity:.7; }
+
+  .log-row{
+    display:grid; grid-template-columns:52px 1fr repeat(4, 58px) 28px;
+    align-items:center; gap:10px;
+    padding:10px 12px; border-radius:var(--radius-sm);
+    background:var(--surface-2); border:1px solid var(--border-soft);
+  }
+  @media (max-width:640px){
+    .log-row{ grid-template-columns:1fr auto; grid-template-areas:"name del" "macros macros"; row-gap:6px; }
+    .log-row .lr-time{ display:none; }
+    .log-row .lr-name{ grid-area:name; }
+    .log-row .lr-del{ grid-area:del; }
+    .log-row .lr-macros{ grid-area:macros; display:flex; gap:14px; flex-wrap:wrap; }
+  }
+  .lr-time{ font-size:0.68rem; color:var(--text-faint); }
+  .lr-name{ font-size:0.88rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lr-macro{ font-size:0.76rem; text-align:right; color:var(--text-dim); }
+  .lr-macro .lbl{ display:block; font-size:0.6rem; color:var(--text-faint); letter-spacing:.05em; text-transform:uppercase; }
+  .lr-cal{ color:var(--gold-bright); font-weight:600; }
+  .lr-del{
+    width:24px; height:24px; border-radius:50%; border:1px solid var(--border);
+    background:transparent; color:var(--text-faint); cursor:pointer; font-size:0.9rem;
+    display:flex; align-items:center; justify-content:center; transition:.15s;
+  }
+  .lr-del:hover{ border-color:var(--danger); color:var(--danger); }
+
+  .save-note{
+    text-align:center; font-size:0.72rem; color:var(--text-faint); padding-top:6px;
+  }
+  .save-note.ok::before{ content:"● "; color:var(--success); }
+  .save-note.local::before{ content:"● "; color:var(--warning); }
+
+  footer{ text-align:center; padding:34px 24px 0; }
+  footer .fmark{ font-family:'Fraunces', serif; color:var(--gold-dim); font-size:0.8rem; letter-spacing:.08em; }
+
+  @media (prefers-reduced-motion: reduce){
+    .bar-fill, .add-btn{ transition:none; }
+  }
+
+  .debug-strip{
+    display:none; /* internal diagnostics only — re-enable (remove this line) if troubleshooting a report */
+    max-width:920px; margin:8px auto 0; padding:8px 14px;
+    font-family:'IBM Plex Mono', ui-monospace, monospace; font-size:0.68rem;
+    color:var(--text-faint); text-align:center; word-break:break-word;
+  }
+  .debug-strip.has-error{ color:var(--danger); }
+
+  .crash-banner{
+    display:none; position:sticky; top:0; z-index:50;
+    background:#4a1410; color:#ffd9d0; border-bottom:2px solid var(--danger);
+    padding:12px 18px; font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:0.78rem; line-height:1.5; text-align:left; white-space:pre-wrap; word-break:break-word;
+  }
+  .crash-banner.show{ display:block; }
+  .crash-banner b{ color:#fff; }
+</style>
+
+<div class="crash-banner" id="crashBanner"></div>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">VITAL <em>ASCENT</em></div>
+      <div class="brand-tag">Coaching · Daily Fuel Log</div>
+    </div>
+    <div class="date-nav">
+      <button class="date-btn" id="prevDay" aria-label="Previous day">‹</button>
+      <div class="date-label">
+        <span class="d-main" id="dateMain">—</span>
+        <span class="d-today" id="dateToday"></span>
+        <input type="date" id="datePicker" class="date-input" aria-label="Jump to date">
+      </div>
+      <button class="date-btn" id="nextDay" aria-label="Next day">›</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="card hero">
+    <div class="ring-wrap">
+      <svg width="172" height="172" viewBox="0 0 172 172">
+        <circle cx="86" cy="86" r="74" fill="none" stroke="#241d14" stroke-width="14"/>
+        <circle id="ringFill" cx="86" cy="86" r="74" fill="none" stroke="#c8a24a" stroke-width="14"
+                stroke-linecap="round" transform="rotate(-90 86 86)"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-num" id="ringNum">0</div>
+        <div class="ring-sub">kcal left</div>
+        <div class="ring-goal" id="ringGoal">of 2000 goal</div>
+      </div>
+    </div>
+
+    <div class="macros">
+      <div class="macro-row">
+        <span class="macro-name">Protein</span>
+        <div class="bar-track"><div class="bar-fill" id="barProtein" style="width:0%"></div></div>
+        <span class="macro-val" id="valProtein">0 <span class="g">/ 0g</span></span>
+      </div>
+      <div class="macro-row">
+        <span class="macro-name">Carbs</span>
+        <div class="bar-track"><div class="bar-fill" id="barCarbs" style="width:0%"></div></div>
+        <span class="macro-val" id="valCarbs">0 <span class="g">/ 0g</span></span>
+      </div>
+      <div class="macro-row">
+        <span class="macro-name">Fat</span>
+        <div class="bar-track"><div class="bar-fill" id="barFat" style="width:0%"></div></div>
+        <span class="macro-val" id="valFat">0 <span class="g">/ 0g</span></span>
+      </div>
+
+      <button class="goals-toggle" id="goalsToggle">Edit daily goals</button>
+      <div class="goals-panel" id="goalsPanel">
+        <div class="goal-field"><label for="goalCalories">Calories</label><input type="number" id="goalCalories" min="0" step="1"></div>
+        <div class="goal-field"><label for="goalProtein">Protein (g)</label><input type="number" id="goalProtein" min="0" step="1"></div>
+        <div class="goal-field"><label for="goalCarbs">Carbs (g)</label><input type="number" id="goalCarbs" min="0" step="1"></div>
+        <div class="goal-field"><label for="goalFat">Fat (g)</label><input type="number" id="goalFat" min="0" step="1"></div>
+        <button class="goals-save" id="goalsSave">Save goals</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card ai-card" id="aiCard">
+    <div class="form-title">AI quick log<span class="form-title-hint">describe what you ate — Claude estimates the macros</span></div>
+    <div class="ai-input-row">
+      <textarea id="aiInput" class="ai-textarea" rows="2" placeholder="e.g. two scrambled eggs, a slice of sourdough with butter, and a black coffee" autocomplete="off"></textarea>
+      <button type="button" class="add-btn ai-go-btn" id="aiGo" disabled>Estimate macros</button>
+    </div>
+    <div class="ai-status" id="aiStatus">Checking AI availability…</div>
+    <div class="ai-draft" id="aiDraft"></div>
+  </section>
+
+  <section class="card lib-card">
+    <div class="lib-head">
+      <div class="lib-title-row">
+        <div class="lib-title-wrap">
+          <div class="form-title" style="margin-bottom:0;">Food library</div>
+          <span class="lib-title-hint">tap a saved food to log it</span>
+        </div>
+        <button type="button" class="lib-new-toggle" id="libNewToggle">+ New food</button>
+      </div>
+      <input type="text" class="lib-search" id="libSearch" placeholder="Search your library…" autocomplete="off">
+    </div>
+
+    <div class="lib-new-form" id="libNewForm">
+      <div class="lib-new-grid">
+        <div class="field"><label for="lfName">Food name</label><input type="text" id="lfName" placeholder="Chicken breast, grilled" autocomplete="off"></div>
+        <div class="field"><label for="lfServing">Serving size</label><input type="text" id="lfServing" placeholder="100g, 1 cup, 1 scoop…" autocomplete="off"></div>
+        <div class="field"><label for="lfCal">Calories</label><input type="number" id="lfCal" min="0" step="1" placeholder="0"></div>
+        <div class="field"><label for="lfProtein">Protein (g)</label><input type="number" id="lfProtein" min="0" step="0.1" placeholder="0"></div>
+        <div class="field"><label for="lfCarbs">Carbs (g)</label><input type="number" id="lfCarbs" min="0" step="0.1" placeholder="0"></div>
+        <div class="field"><label for="lfFat">Fat (g)</label><input type="number" id="lfFat" min="0" step="0.1" placeholder="0"></div>
+      </div>
+      <div class="lib-new-actions">
+        <button type="button" class="add-btn" id="lfSave">Save to library</button>
+        <span class="form-err" id="lfErr" style="margin-top:0;"></span>
+      </div>
+    </div>
+
+    <div class="lib-list" id="libList">
+      <div class="log-empty">Your library is empty.<div class="sub">Add foods and drinks you have often — then logging them is one tap.</div></div>
+    </div>
+  </section>
+
+  <section class="card lib-card">
+    <div class="lib-head">
+      <div class="lib-title-row">
+        <div class="lib-title-wrap">
+          <div class="form-title" style="margin-bottom:0;">Log by weight</div>
+          <span class="lib-title-hint">pick a common food, enter exact grams — macros scale automatically</span>
+        </div>
+      </div>
+      <input type="text" class="lib-search" id="gwSearch" placeholder="Search common foods… (banana, chicken breast, rice)" autocomplete="off">
+    </div>
+    <div class="lib-list" id="gwList"></div>
+    <div class="gw-note">Typical values per 100g of the food. The macros update live as you change the grams — feel free to nudge the numbers afterward if your package says something different.</div>
+  </section>
+
+  <section class="card form-card">
+    <div class="form-title">Custom entry<span class="form-title-hint">for anything not in your library</span></div>
+    <form id="entryForm">
+      <div class="form-grid">
+        <div class="field"><label for="fName">Food</label><input type="text" id="fName" placeholder="Grilled chicken breast" autocomplete="off"></div>
+        <div class="field"><label for="fCal">Calories</label><input type="number" id="fCal" min="0" step="1" placeholder="0"></div>
+        <div class="field"><label for="fProtein">Protein (g)</label><input type="number" id="fProtein" min="0" step="0.1" placeholder="0"></div>
+        <div class="field"><label for="fCarbs">Carbs (g)</label><input type="number" id="fCarbs" min="0" step="0.1" placeholder="0"></div>
+        <div class="field"><label for="fFat">Fat (g)</label><input type="number" id="fFat" min="0" step="0.1" placeholder="0"></div>
+        <button type="submit" class="add-btn">Add entry</button>
+      </div>
+      <div class="form-err" id="formErr"></div>
+    </form>
+  </section>
+
+  <section class="card log-card">
+    <div class="log-head">
+      <div class="log-title">Today's entries</div>
+      <div class="log-count" id="logCount">0 items</div>
+    </div>
+    <div class="log-list" id="logList">
+      <div class="log-empty">No food logged yet for this day.<div class="sub">Add your first entry above.</div></div>
+    </div>
+  </section>
+
+  <div class="save-note" id="saveNote">Loading…</div>
+
+</div>
+
+<div class="debug-strip" id="debugStrip"></div>
+<footer><div class="fmark">VITAL ASCENT COACHING</div></footer>
+
+<script>
+// Crash reporting lives OUTSIDE the main IIFE and is wired up first, so it
+// is active even if something inside the app code below throws while the
+// script is still loading (which would otherwise fail silently and leave
+// every button on the page inert with no visible sign why).
+(function(){
+  "use strict";
+  var banner = document.getElementById('crashBanner');
+  var shown = false;
+  function show(title, detail){
+    if(!banner) return;
+    shown = true;
+    banner.innerHTML = '<b>' + title.replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }) + '</b>\n' + String(detail || '').replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; });
+    banner.classList.add('show');
+  }
+  window.__vaReportError = function(title, detail){ show(title, detail); };
+  window.addEventListener('error', function(ev){
+    show('Page error: ' + (ev.message || 'unknown'), (ev.filename || '') + (ev.lineno ? ':' + ev.lineno : '') + (ev.error && ev.error.stack ? '\n' + ev.error.stack : ''));
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    var r = ev.reason;
+    var detail = r && r.stack ? r.stack : (r && r.message) ? r.message : String(r);
+    show('Unhandled error in a background task', detail);
+  });
+})();
+
+(function(){
+  "use strict";
+
+  var BUILD_TAG = '2026-09-04.3'; // bump on every publish — lets us confirm which version is actually loaded
+  var DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
+  var LS_GOALS = 'va_goals_v1';
+  var LS_LOG_PREFIX = 'va_log_v1_';
+  var LS_LIBRARY = 'va_library_v1';
+
+  // Built-in reference table for "Log by weight" — typical macros per 100g
+  // of each food (not this viewer's data, so no db/AI call needed; instant
+  // and works with zero setup). Values are common nutrition-label/USDA-style
+  // averages meant as a solid starting point — the computed macros stay
+  // editable in the log afterward for anyone with an exact package label.
+  var COMMON_FOODS = [
+    { name: 'Banana', cal: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
+    { name: 'Apple', cal: 52, protein: 0.3, carbs: 13.8, fat: 0.2 },
+    { name: 'Orange', cal: 47, protein: 0.9, carbs: 11.8, fat: 0.1 },
+    { name: 'Strawberries', cal: 32, protein: 0.7, carbs: 7.7, fat: 0.3 },
+    { name: 'Blueberries', cal: 57, protein: 0.7, carbs: 14.5, fat: 0.3 },
+    { name: 'Grapes', cal: 69, protein: 0.7, carbs: 18.1, fat: 0.2 },
+    { name: 'Pineapple', cal: 50, protein: 0.5, carbs: 13.1, fat: 0.1 },
+    { name: 'Mango', cal: 60, protein: 0.8, carbs: 15.0, fat: 0.4 },
+    { name: 'Watermelon', cal: 30, protein: 0.6, carbs: 7.6, fat: 0.2 },
+    { name: 'Avocado', cal: 160, protein: 2.0, carbs: 8.5, fat: 14.7 },
+    { name: 'Broccoli, raw', cal: 34, protein: 2.8, carbs: 6.6, fat: 0.4 },
+    { name: 'Spinach, raw', cal: 23, protein: 2.9, carbs: 3.6, fat: 0.4 },
+    { name: 'Carrot', cal: 41, protein: 0.9, carbs: 9.6, fat: 0.2 },
+    { name: 'Sweet potato, baked', cal: 90, protein: 2.0, carbs: 20.7, fat: 0.1 },
+    { name: 'Potato, baked', cal: 93, protein: 2.5, carbs: 21.2, fat: 0.1 },
+    { name: 'Tomato', cal: 18, protein: 0.9, carbs: 3.9, fat: 0.2 },
+    { name: 'Cucumber', cal: 15, protein: 0.7, carbs: 3.6, fat: 0.1 },
+    { name: 'Bell pepper', cal: 31, protein: 1.0, carbs: 6.0, fat: 0.3 },
+    { name: 'Onion', cal: 40, protein: 1.1, carbs: 9.3, fat: 0.1 },
+    { name: 'Green beans', cal: 31, protein: 1.8, carbs: 7.0, fat: 0.2 },
+    { name: 'Chicken breast, cooked', cal: 165, protein: 31.0, carbs: 0, fat: 3.6 },
+    { name: 'Chicken thigh, cooked', cal: 209, protein: 26.0, carbs: 0, fat: 10.9 },
+    { name: 'Ground beef 85/15, cooked', cal: 250, protein: 26.0, carbs: 0, fat: 17.0 },
+    { name: 'Ground beef 93/7, cooked', cal: 152, protein: 21.5, carbs: 0, fat: 7.2 },
+    { name: 'Salmon, cooked', cal: 208, protein: 20.0, carbs: 0, fat: 13.0 },
+    { name: 'Tuna, canned in water', cal: 116, protein: 26.0, carbs: 0, fat: 0.8 },
+    { name: 'Shrimp, cooked', cal: 99, protein: 24.0, carbs: 0.2, fat: 0.3 },
+    { name: 'Pork chop, cooked', cal: 231, protein: 27.0, carbs: 0, fat: 13.0 },
+    { name: 'Turkey breast, cooked', cal: 135, protein: 30.0, carbs: 0, fat: 1.0 },
+    { name: 'Egg, whole', cal: 155, protein: 13.0, carbs: 1.1, fat: 11.0 },
+    { name: 'Egg white', cal: 52, protein: 11.0, carbs: 0.7, fat: 0.2 },
+    { name: 'Tofu, firm', cal: 144, protein: 15.5, carbs: 3.9, fat: 8.7 },
+    { name: 'Greek yogurt, plain nonfat', cal: 59, protein: 10.0, carbs: 3.6, fat: 0.4 },
+    { name: 'Cottage cheese, low-fat', cal: 84, protein: 11.0, carbs: 4.3, fat: 2.5 },
+    { name: 'White rice, cooked', cal: 130, protein: 2.7, carbs: 28.0, fat: 0.3 },
+    { name: 'Brown rice, cooked', cal: 123, protein: 2.7, carbs: 25.6, fat: 1.0 },
+    { name: 'Oats, dry', cal: 389, protein: 16.9, carbs: 66.3, fat: 6.9 },
+    { name: 'Quinoa, cooked', cal: 120, protein: 4.4, carbs: 21.3, fat: 1.9 },
+    { name: 'White bread', cal: 265, protein: 9.0, carbs: 49.0, fat: 3.2 },
+    { name: 'Whole wheat bread', cal: 247, protein: 13.0, carbs: 41.0, fat: 3.4 },
+    { name: 'Pasta, cooked', cal: 131, protein: 5.0, carbs: 25.0, fat: 1.1 },
+    { name: 'Sweet corn', cal: 86, protein: 3.3, carbs: 19.0, fat: 1.4 },
+    { name: 'Milk, whole', cal: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
+    { name: 'Milk, skim', cal: 34, protein: 3.4, carbs: 5.0, fat: 0.1 },
+    { name: 'Cheddar cheese', cal: 403, protein: 25.0, carbs: 1.3, fat: 33.0 },
+    { name: 'Butter', cal: 717, protein: 0.9, carbs: 0.1, fat: 81.0 },
+    { name: 'Peanut butter', cal: 588, protein: 25.0, carbs: 20.0, fat: 50.0 },
+    { name: 'Almonds', cal: 579, protein: 21.0, carbs: 22.0, fat: 50.0 },
+    { name: 'Peanuts', cal: 567, protein: 25.8, carbs: 16.1, fat: 49.2 },
+    { name: 'Olive oil', cal: 884, protein: 0, carbs: 0, fat: 100.0 },
+    { name: 'Black beans, cooked', cal: 132, protein: 8.9, carbs: 23.7, fat: 0.5 },
+    { name: 'Chickpeas, cooked', cal: 164, protein: 8.9, carbs: 27.4, fat: 2.6 },
+    { name: 'Lentils, cooked', cal: 116, protein: 9.0, carbs: 20.1, fat: 0.4 }
+  ];
+
+  var TODAY = fmtDate(new Date());
+  var state = {
+    date: TODAY,
+    goals: loadLocal(LS_GOALS, DEFAULT_GOALS),
+    entries: (loadLocalLog(TODAY).entries || []),
+    library: loadLocal(LS_LIBRARY, []),
+    libFilter: '',
+    gwFilter: '',
+    db: null,
+    dbStatus: 'connecting',
+    lastError: null,
+    dbReady: false,
+    logWriteChain: Promise.resolve(),
+    pendingLogWrites: 0,
+    goalsWriteChain: Promise.resolve(),
+    pendingGoalWrites: 0,
+    sample: null,
+    aiStatus: 'checking', // 'checking' | 'ready' | 'hidden'
+    aiBusy: false,
+    aiDraft: []
+  };
+
+  function fmtDate(d){
+    var y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  }
+  function parseDate(s){
+    var parts = s.split('-').map(Number);
+    return new Date(parts[0], parts[1]-1, parts[2]);
+  }
+  function loadLocal(key, fallback){
+    try{
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+  function saveLocal(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+  function loadLocalLog(date){
+    return loadLocal(LS_LOG_PREFIX + date, { entries: [] });
+  }
+  function saveLocalLog(date, data){
+    saveLocal(LS_LOG_PREFIX + date, data);
+  }
+  function saveLocalLibrary(){
+    saveLocal(LS_LIBRARY, state.library);
+  }
+
+  // ---------- DOM refs ----------
+  var el = {
+    prevDay: document.getElementById('prevDay'),
+    nextDay: document.getElementById('nextDay'),
+    dateMain: document.getElementById('dateMain'),
+    dateToday: document.getElementById('dateToday'),
+    datePicker: document.getElementById('datePicker'),
+    ringFill: document.getElementById('ringFill'),
+    ringNum: document.getElementById('ringNum'),
+    ringGoal: document.getElementById('ringGoal'),
+    barProtein: document.getElementById('barProtein'),
+    barCarbs: document.getElementById('barCarbs'),
+    barFat: document.getElementById('barFat'),
+    valProtein: document.getElementById('valProtein'),
+    valCarbs: document.getElementById('valCarbs'),
+    valFat: document.getElementById('valFat'),
+    goalsToggle: document.getElementById('goalsToggle'),
+    goalsPanel: document.getElementById('goalsPanel'),
+    goalCalories: document.getElementById('goalCalories'),
+    goalProtein: document.getElementById('goalProtein'),
+    goalCarbs: document.getElementById('goalCarbs'),
+    goalFat: document.getElementById('goalFat'),
+    goalsSave: document.getElementById('goalsSave'),
+    entryForm: document.getElementById('entryForm'),
+    fName: document.getElementById('fName'),
+    fCal: document.getElementById('fCal'),
+    fProtein: document.getElementById('fProtein'),
+    fCarbs: document.getElementById('fCarbs'),
+    fFat: document.getElementById('fFat'),
+    formErr: document.getElementById('formErr'),
+    logList: document.getElementById('logList'),
+    logCount: document.getElementById('logCount'),
+    saveNote: document.getElementById('saveNote'),
+    debugStrip: document.getElementById('debugStrip'),
+    libNewToggle: document.getElementById('libNewToggle'),
+    libSearch: document.getElementById('libSearch'),
+    libNewForm: document.getElementById('libNewForm'),
+    lfName: document.getElementById('lfName'),
+    lfServing: document.getElementById('lfServing'),
+    lfCal: document.getElementById('lfCal'),
+    lfProtein: document.getElementById('lfProtein'),
+    lfCarbs: document.getElementById('lfCarbs'),
+    lfFat: document.getElementById('lfFat'),
+    lfSave: document.getElementById('lfSave'),
+    lfErr: document.getElementById('lfErr'),
+    libList: document.getElementById('libList'),
+    gwSearch: document.getElementById('gwSearch'),
+    gwList: document.getElementById('gwList'),
+    aiCard: document.getElementById('aiCard'),
+    aiInput: document.getElementById('aiInput'),
+    aiGo: document.getElementById('aiGo'),
+    aiStatus: document.getElementById('aiStatus'),
+    aiDraft: document.getElementById('aiDraft')
+  };
+
+  // Wrap an event handler so a runtime error inside it surfaces on screen
+  // (via the crash banner set up above) instead of just doing nothing —
+  // "the button doesn't respond" is otherwise indistinguishable from "the
+  // button's handler threw and we never heard about it."
+  function safe(label, fn){
+    return function(ev){
+      try{
+        return fn(ev);
+      }catch(err){
+        if(window.__vaReportError) window.__vaReportError('Something broke in "' + label + '"', (err && err.stack) || (err && err.message) || String(err));
+        if(window.console && console.error) console.error('[Vital Ascent] ' + label, err);
+      }
+    };
+  }
+
+  function describeErr(e){
+    if(!e) return 'unknown error';
+    if(typeof e === 'string') return e;
+    if(e.code) return e.code + (e.message ? ': ' + e.message : '');
+    if(e.message) return e.message;
+    try{ return JSON.stringify(e); }catch(ignored){ return String(e); }
+  }
+
+  function renderDebug(){
+    if(!el.debugStrip) return;
+    var parts = ['build ' + BUILD_TAG, 'db: ' + state.dbStatus, 'entries: ' + state.entries.length];
+    if(state.lastError) parts.push('error: ' + state.lastError);
+    el.debugStrip.textContent = parts.join(' · ');
+    el.debugStrip.classList.toggle('has-error', !!state.lastError);
+  }
+
+  var RING_CIRC = 2 * Math.PI * 74;
+  el.ringFill.style.strokeDasharray = RING_CIRC.toFixed(2);
+
+  // ---------- Rendering ----------
+  function render(){
+    // date header
+    var d = parseDate(state.date);
+    el.dateMain.textContent = d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+    el.dateToday.textContent = state.date === fmtDate(new Date()) ? 'Today' : d.toLocaleDateString(undefined, { weekday:'long' });
+    el.datePicker.value = state.date;
+
+    // totals
+    var totals = state.entries.reduce(function(acc, e){
+      acc.calories += num(e.calories);
+      acc.protein += num(e.protein);
+      acc.carbs += num(e.carbs);
+      acc.fat += num(e.fat);
+      return acc;
+    }, { calories:0, protein:0, carbs:0, fat:0 });
+
+    var g = state.goals;
+
+    // ring
+    var frac = g.calories > 0 ? Math.min(1, totals.calories / g.calories) : 0;
+    var offset = RING_CIRC * (1 - frac);
+    el.ringFill.style.strokeDashoffset = offset.toFixed(2);
+    var over = totals.calories > g.calories;
+    el.ringFill.setAttribute('stroke', over ? 'url(#none)' : '#c8a24a');
+    el.ringFill.style.stroke = over ? '#d16a5a' : '#c8a24a';
+    var remaining = Math.round(g.calories - totals.calories);
+    el.ringNum.textContent = (remaining < 0 ? '+' + Math.abs(remaining) : remaining);
+    el.ringNum.parentElement.querySelector('.ring-sub').textContent = remaining < 0 ? 'kcal over' : 'kcal left';
+    el.ringGoal.textContent = 'of ' + g.calories + ' goal · ' + Math.round(totals.calories) + ' eaten';
+
+    setBar(el.barProtein, el.valProtein, totals.protein, g.protein);
+    setBar(el.barCarbs, el.valCarbs, totals.carbs, g.carbs);
+    setBar(el.barFat, el.valFat, totals.fat, g.fat);
+
+    // goal inputs (only if not focused, to avoid clobbering typing)
+    if(document.activeElement !== el.goalCalories) el.goalCalories.value = g.calories;
+    if(document.activeElement !== el.goalProtein) el.goalProtein.value = g.protein;
+    if(document.activeElement !== el.goalCarbs) el.goalCarbs.value = g.carbs;
+    if(document.activeElement !== el.goalFat) el.goalFat.value = g.fat;
+
+    // log list
+    renderLog();
+    renderDebug();
+  }
+
+  function setBar(barEl, valEl, consumed, goal){
+    var pct = goal > 0 ? Math.min(100, (consumed/goal)*100) : 0;
+    barEl.style.width = pct + '%';
+    barEl.classList.toggle('over', consumed > goal && goal > 0);
+    valEl.innerHTML = round1(consumed) + ' <span class="g">/ ' + round1(goal) + 'g</span>';
+  }
+
+  function renderLog(){
+    var entries = state.entries.slice().sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+    el.logCount.textContent = entries.length + (entries.length === 1 ? ' item' : ' items');
+    if(entries.length === 0){
+      el.logList.innerHTML = '<div class="log-empty">No food logged yet for this day.<div class="sub">Add your first entry above.</div></div>';
+      return;
+    }
+    el.logList.innerHTML = entries.map(function(e){
+      return '' +
+        '<div class="log-row" data-id="' + attr(e.id) + '">' +
+          '<div class="lr-time mono">' + attr(e.time || '') + '</div>' +
+          '<div class="lr-name" title="' + attr(e.name) + '">' + escapeHtml(e.name) + '</div>' +
+          '<div class="lr-macro lr-cal mono"><span class="lbl">Kcal</span>' + Math.round(num(e.calories)) + '</div>' +
+          '<div class="lr-macro mono"><span class="lbl">Pro</span>' + round1(num(e.protein)) + 'g</div>' +
+          '<div class="lr-macro mono"><span class="lbl">Carb</span>' + round1(num(e.carbs)) + 'g</div>' +
+          '<div class="lr-macro mono"><span class="lbl">Fat</span>' + round1(num(e.fat)) + 'g</div>' +
+          '<button class="lr-del" aria-label="Delete entry" data-del="' + attr(e.id) + '">×</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function num(v){ var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function round1(v){ var n = Math.round(num(v)*10)/10; return (n % 1 === 0) ? String(n) : n.toFixed(1); }
+  function round1n(v){ return Math.round(num(v)*10)/10; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function attr(s){ return escapeHtml(s); }
+
+  // ---------- Food library ----------
+  function renderLibrary(){
+    if(state.library.length === 0){
+      el.libList.innerHTML = '<div class="log-empty">Your library is empty.<div class="sub">Add foods and drinks you have often — then logging them is one tap.</div></div>';
+      return;
+    }
+    var q = state.libFilter.trim().toLowerCase();
+    var items = state.library.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    if(q) items = items.filter(function(it){ return it.name.toLowerCase().indexOf(q) !== -1; });
+
+    if(items.length === 0){
+      el.libList.innerHTML = '<div class="log-empty">No matches for “' + escapeHtml(state.libFilter.trim()) + '”.</div>';
+      return;
+    }
+    el.libList.innerHTML = items.map(function(it){
+      var cal = num(it.calories), p = num(it.protein), c = num(it.carbs), f = num(it.fat);
+      return '' +
+        '<div class="lib-row" data-id="' + attr(it.id) + '" tabindex="0" role="button" aria-label="Log ' + attr(it.name) + '">' +
+          '<div class="lib-main">' +
+            '<div class="lib-name" title="' + attr(it.name) + '">' + escapeHtml(it.name) + '</div>' +
+            '<div class="lib-serving mono">per ' + escapeHtml(it.serving || '1 serving') + ' · ' + Math.round(cal) + ' kcal · ' + round1(p) + 'P · ' + round1(c) + 'C · ' + round1(f) + 'F</div>' +
+          '</div>' +
+          '<div class="lib-controls">' +
+            '<input type="number" class="lib-servings mono" value="1" min="0" step="0.25" aria-label="Servings of ' + attr(it.name) + '">' +
+            '<span class="lib-computed">' + Math.round(cal) + ' kcal</span>' +
+            '<button type="button" class="lib-add-btn" data-libadd="' + attr(it.id) + '">Add</button>' +
+            '<button type="button" class="lib-del" data-libdel="' + attr(it.id) + '" aria-label="Delete ' + attr(it.name) + ' from library">×</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function addFromLibrary(item, servings){
+    var now = new Date();
+    var label = item.name + (servings !== 1 ? ' × ' + (Math.round(servings*100)/100) : '');
+    var entry = {
+      id: 'e_' + now.getTime() + '_' + Math.random().toString(36).slice(2,7),
+      name: label,
+      calories: Math.round(num(item.calories) * servings),
+      protein: round1n(num(item.protein) * servings),
+      carbs: round1n(num(item.carbs) * servings),
+      fat: round1n(num(item.fat) * servings),
+      time: String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'),
+      fromLibrary: item.id,
+      servings: servings
+    };
+    state.entries.push(entry);
+    persistLog();
+    render();
+  }
+
+  function addLibraryFood(data){
+    var ref = null, id;
+    if(state.db){
+      ref = state.db.collection('foods').doc(); // client-generated id, available synchronously
+      id = ref.id;
+    } else {
+      id = 'lf_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    }
+    var item = { id: id, name: data.name, serving: data.serving, calories: data.calories, protein: data.protein, carbs: data.carbs, fat: data.fat };
+    state.library.push(item);
+    saveLocalLibrary();
+    renderLibrary();
+    if(ref){
+      ref.set({ name: item.name, serving: item.serving, calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat })
+        .catch(function(e){ state.lastError = 'library save failed: ' + describeErr(e); renderDebug(); });
+    }
+  }
+
+  function deleteLibraryFood(id){
+    state.library = state.library.filter(function(it){ return it.id !== id; });
+    saveLocalLibrary();
+    renderLibrary();
+    if(state.db){
+      state.db.collection('foods').doc(id).delete()
+        .catch(function(e){ state.lastError = 'library delete failed: ' + describeErr(e); renderDebug(); });
+    }
+  }
+
+  function loadLibrary(){
+    if(!state.db) return;
+    state.db.collection('foods').orderBy('name').limit(500).get().then(function(snap){
+      var incoming = snap.docs.map(function(doc){
+        var d = doc.data() || {};
+        return { id: doc.id, name: String(d.name || ''), serving: String(d.serving || ''), calories: num(d.calories), protein: num(d.protein), carbs: num(d.carbs), fat: num(d.fat) };
+      });
+      // Same never-shrink-what's-local rule as the daily log: if this read
+      // reflects fewer items than are already showing (it was in flight
+      // when a food got saved), merge rather than erase — keep whatever
+      // local-only items the read doesn't know about yet.
+      if(incoming.length < state.library.length){
+        var incomingIds = {};
+        incoming.forEach(function(it){ incomingIds[it.id] = true; });
+        var localOnly = state.library.filter(function(it){ return !incomingIds[it.id]; });
+        state.library = incoming.concat(localOnly);
+      } else {
+        state.library = incoming;
+      }
+      saveLocalLibrary();
+      renderLibrary();
+    }).catch(function(e){ state.lastError = 'library load failed: ' + describeErr(e); renderDebug(); });
+  }
+
+  // ---------- Log by weight ----------
+  // A built-in reference table (COMMON_FOODS, per 100g) so a food like a
+  // banana can be logged by exact grams with the macros computed instantly —
+  // no AI call, no db, no consent prompt, just arithmetic. Mirrors the Food
+  // Library's row UI (search, per-row live-updating input, tap-or-Add-to-log)
+  // since that pattern is already built and working.
+  function gwFactor(grams){ return num(grams) / 100; }
+
+  function renderGw(){
+    if(!el.gwList) return;
+    var q = state.gwFilter.trim().toLowerCase();
+    var items = COMMON_FOODS.map(function(f, i){ return { f: f, idx: i }; });
+    if(q) items = items.filter(function(it){ return it.f.name.toLowerCase().indexOf(q) !== -1; });
+    items.sort(function(a, b){ return a.f.name.localeCompare(b.f.name); });
+
+    if(items.length === 0){
+      el.gwList.innerHTML = '<div class="log-empty">No matches for “' + escapeHtml(state.gwFilter.trim()) + '”.</div>';
+      return;
+    }
+    el.gwList.innerHTML = items.map(function(it){
+      var f = it.f;
+      return '' +
+        '<div class="lib-row" data-idx="' + it.idx + '" tabindex="0" role="button" aria-label="Log ' + attr(f.name) + ' by weight">' +
+          '<div class="lib-main">' +
+            '<div class="lib-name" title="' + attr(f.name) + '">' + escapeHtml(f.name) + '</div>' +
+            '<div class="lib-serving mono">per 100g · ' + Math.round(f.cal) + ' kcal · ' + round1(f.protein) + 'P · ' + round1(f.carbs) + 'C · ' + round1(f.fat) + 'F</div>' +
+          '</div>' +
+          '<div class="lib-controls">' +
+            '<input type="number" class="lib-servings mono gw-grams" value="100" min="0" step="1" aria-label="Grams of ' + attr(f.name) + '">' +
+            '<span class="lib-computed">' + Math.round(f.cal) + ' kcal</span>' +
+            '<button type="button" class="lib-add-btn" data-gwadd="' + it.idx + '">Add</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function addFromWeight(item, grams){
+    var factor = gwFactor(grams);
+    var now = new Date();
+    var entry = {
+      id: 'e_' + now.getTime() + '_' + Math.random().toString(36).slice(2,7),
+      name: item.name + ' (' + Math.round(num(grams)) + 'g)',
+      calories: Math.round(item.cal * factor),
+      protein: round1n(item.protein * factor),
+      carbs: round1n(item.carbs * factor),
+      fat: round1n(item.fat * factor),
+      time: String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'),
+      fromWeight: item.name,
+      grams: num(grams)
+    };
+    state.entries.push(entry);
+    persistLog();
+    render();
+  }
+
+  function gwAddRow(row, addBtn){
+    var idx = parseInt(row.getAttribute('data-idx'), 10);
+    var item = COMMON_FOODS[idx];
+    if(!item) return;
+    var gramsInput = row.querySelector('.gw-grams');
+    var grams = gramsInput ? num(gramsInput.value) : 100;
+    if(!(grams > 0)) grams = 100;
+    addFromWeight(item, grams);
+
+    if(!addBtn) addBtn = row.querySelector('[data-gwadd]');
+    if(addBtn){
+      addBtn.textContent = 'Added';
+      addBtn.classList.add('just-added');
+      setTimeout(function(){ addBtn.textContent = 'Add'; addBtn.classList.remove('just-added'); }, 900);
+    }
+  }
+
+  el.gwSearch.addEventListener('input', safe('gwSearch', function(){
+    state.gwFilter = el.gwSearch.value;
+    renderGw();
+  }));
+
+  el.gwList.addEventListener('input', safe('gwList grams input', function(ev){
+    var input = ev.target.closest('.gw-grams');
+    if(!input) return;
+    var row = input.closest('.lib-row');
+    var idx = row && parseInt(row.getAttribute('data-idx'), 10);
+    var item = COMMON_FOODS[idx];
+    if(!item) return;
+    var grams = num(input.value);
+    if(grams < 0) grams = 0;
+    var span = row.querySelector('.lib-computed');
+    if(span) span.textContent = Math.round(item.cal * gwFactor(grams)) + ' kcal';
+  }));
+
+  el.gwList.addEventListener('click', safe('gwList click (add)', function(ev){
+    if(ev.target.closest('.gw-grams')) return; // let the number box handle its own click/focus
+    var row = ev.target.closest('.lib-row');
+    if(!row) return;
+    gwAddRow(row, ev.target.closest('[data-gwadd]'));
+  }));
+
+  el.gwList.addEventListener('keydown', safe('gwList keydown', function(ev){
+    if(ev.key !== 'Enter' && ev.key !== ' ') return;
+    if(ev.target.closest('.gw-grams, [data-gwadd]')) return; // those handle their own activation
+    var row = ev.target.closest('.lib-row');
+    if(!row) return;
+    ev.preventDefault();
+    gwAddRow(row, null);
+  }));
+
+  // ---------- AI quick log ----------
+  // Lets a person describe a meal in plain English ("two eggs and toast")
+  // and has Claude — via the artifact's own `sample` capability, running on
+  // the VIEWER's account, never an external API — estimate calories and
+  // macros for it. The estimate always lands as an editable draft first;
+  // nothing is added to the log until the person reviews and confirms it.
+  // Foods already saved in the library are passed along as known-accurate
+  // reference points, and a person can mark a drafted item to be remembered
+  // in the library — so the app's estimates get more personal over time.
+
+  function setAiStatus(text, cls){
+    if(!el.aiStatus) return;
+    el.aiStatus.textContent = text || '';
+    el.aiStatus.className = 'ai-status' + (cls ? ' ' + cls : '');
+  }
+
+  function renderAiAvailability(){
+    if(!el.aiCard) return;
+    if(state.aiStatus === 'hidden'){
+      el.aiCard.style.display = 'none';
+      return;
+    }
+    el.aiCard.style.display = '';
+    var ready = state.aiStatus === 'ready';
+    el.aiGo.disabled = !ready || state.aiBusy;
+    if(ready) setAiStatus('Type what you ate or drank, in your own words.', '');
+  }
+
+  function initSample(){
+    if(!window.claude || typeof window.claude.use !== 'function'){
+      state.aiStatus = 'hidden';
+      renderAiAvailability();
+      return;
+    }
+    window.claude.use('sample').then(function(fn){
+      if(!fn){ state.aiStatus = 'hidden'; renderAiAvailability(); return; }
+      state.sample = fn;
+      state.aiStatus = 'ready';
+      renderAiAvailability();
+    }).catch(function(){ state.aiStatus = 'hidden'; renderAiAvailability(); });
+  }
+
+  function buildKnownFoodsBlock(){
+    if(!state.library.length) return '';
+    var lines = state.library.slice(0, 40).map(function(f){
+      return '- ' + f.name + ' (per ' + (f.serving || '1 serving') + '): ' +
+        Math.round(num(f.calories)) + ' cal, ' + round1(f.protein) + 'g protein, ' + round1(f.carbs) + 'g carbs, ' + round1(f.fat) + 'g fat';
+    });
+    return 'Foods this specific person has already saved with confirmed macros — if their description ' +
+      'clearly matches one of these, reuse its numbers (scaled to the amount described) instead of guessing:\n' +
+      lines.join('\n') + '\n\n';
+  }
+
+  // "Hide the feature" codes per the sample capability contract: permanent
+  // for this view, never worth re-asking.
+  function aiErrIsPermanent(e){
+    var code = e && e.code;
+    return code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' ||
+      code === 'capability_disabled' || code === 'capability_removed';
+  }
+
+  function describeAiErr(e){
+    switch(e && e.code){
+      case 'rate_limited': return 'Too many requests right now — try again in a moment.';
+      case 'invalid_json': return "Couldn't read that back as food data — try rephrasing.";
+      case 'prompt_too_large': return 'That description is too long — try something shorter.';
+      case 'cancelled': return '';
+      case 'refused': return "Claude couldn't estimate that — try rephrasing it.";
+      case 'empty_completion': return "Didn't get an estimate back — try again.";
+      case 'session_expired': return 'Your session expired — reload the page and sign in again.';
+      default: return 'Something went wrong getting an estimate — try again.';
+    }
+  }
+
+  function estimateFood(){
+    if(!state.sample || state.aiBusy) return;
+    var desc = el.aiInput.value.trim();
+    if(!desc){ setAiStatus('Describe what you ate first.', 'err'); el.aiInput.focus(); return; }
+
+    state.aiBusy = true;
+    el.aiGo.disabled = true;
+    el.aiGo.textContent = 'Estimating…';
+    setAiStatus('Thinking…', 'busy');
+
+    var prompt =
+      'You are a nutrition estimator inside a personal calorie-tracking app. The user describes what they ' +
+      'ate or drank in plain English. Break the description into distinct food/beverage items and estimate ' +
+      'calories and macros (grams) for the QUANTITY described, not a generic single serving.\n\n' +
+      buildKnownFoodsBlock() +
+      'User\'s description: "' + desc.replace(/"/g, "'") + '"\n\n' +
+      'Reply with ONLY a JSON array, one object per distinct item, each shaped exactly like:\n' +
+      '{"name": string, "calories": number, "protein": number, "carbs": number, "fat": number}\n' +
+      'Use whole numbers for calories and one decimal place for gram values. No text before or after the array.';
+
+    state.sample.json(prompt, { modelTier: 'quick', cache: false }).then(function(items){
+      state.aiBusy = false;
+      el.aiGo.disabled = false;
+      el.aiGo.textContent = 'Estimate macros';
+      if(!Array.isArray(items)) items = items ? [items] : [];
+      if(!items.length){
+        setAiStatus("Couldn't find any food in that — try rephrasing.", 'err');
+        return;
+      }
+      var drafted = items.map(function(it){
+        return {
+          name: String((it && it.name) || 'Food').slice(0, 80),
+          calories: Math.max(0, Math.round(num(it && it.calories))),
+          protein: Math.max(0, round1n(num(it && it.protein))),
+          carbs: Math.max(0, round1n(num(it && it.carbs))),
+          fat: Math.max(0, round1n(num(it && it.fat))),
+          remember: false
+        };
+      });
+      state.aiDraft = state.aiDraft.concat(drafted);
+      setAiStatus('Estimated ' + drafted.length + (drafted.length === 1 ? ' item' : ' items') + ' — check the numbers, then add.', '');
+      renderAiDraft();
+      el.aiInput.value = '';
+    }).catch(function(e){
+      state.aiBusy = false;
+      el.aiGo.disabled = false;
+      el.aiGo.textContent = 'Estimate macros';
+      if(aiErrIsPermanent(e)){ state.aiStatus = 'hidden'; renderAiAvailability(); return; }
+      var msg = describeAiErr(e);
+      if(msg) setAiStatus(msg, 'err'); else setAiStatus('', '');
+    });
+  }
+
+  function renderAiDraft(){
+    if(!el.aiDraft) return;
+    if(!state.aiDraft.length){ el.aiDraft.innerHTML = ''; return; }
+    el.aiDraft.innerHTML =
+      '<div class="ai-draft-list">' +
+      state.aiDraft.map(function(d, i){
+        return '' +
+          '<div class="ai-draft-row" data-idx="' + i + '">' +
+            '<div class="ai-draft-top">' +
+              '<div class="field"><label>Food</label><input type="text" data-field="name" data-idx="' + i + '" value="' + attr(d.name) + '"></div>' +
+              '<button type="button" class="ai-draft-del" data-airemove="' + i + '" aria-label="Remove ' + attr(d.name) + '">×</button>' +
+            '</div>' +
+            '<div class="ai-draft-grid">' +
+              '<div class="field"><label>Calories</label><input type="number" min="0" step="1" data-field="calories" data-idx="' + i + '" value="' + d.calories + '"></div>' +
+              '<div class="field"><label>Protein (g)</label><input type="number" min="0" step="0.1" data-field="protein" data-idx="' + i + '" value="' + d.protein + '"></div>' +
+              '<div class="field"><label>Carbs (g)</label><input type="number" min="0" step="0.1" data-field="carbs" data-idx="' + i + '" value="' + d.carbs + '"></div>' +
+              '<div class="field"><label>Fat (g)</label><input type="number" min="0" step="0.1" data-field="fat" data-idx="' + i + '" value="' + d.fat + '"></div>' +
+            '</div>' +
+            '<label class="ai-draft-remember"><input type="checkbox" data-field="remember" data-idx="' + i + '"' + (d.remember ? ' checked' : '') + '> Save to food library for next time</label>' +
+          '</div>';
+      }).join('') +
+      '</div>' +
+      '<div class="ai-draft-actions">' +
+        '<button type="button" class="add-btn" data-aiaddall>Add ' + state.aiDraft.length + (state.aiDraft.length === 1 ? ' item' : ' items') + ' to today’s log</button>' +
+        '<button type="button" class="ai-draft-discard" data-aidiscard>Discard</button>' +
+      '</div>';
+  }
+
+  function commitAiDraft(){
+    if(!state.aiDraft.length) return;
+    var now = new Date();
+    var timeStr = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    var count = state.aiDraft.length;
+    state.aiDraft.forEach(function(d, idx){
+      var entry = {
+        id: 'e_' + now.getTime() + '_' + idx + '_' + Math.random().toString(36).slice(2,7),
+        name: d.name || 'Food',
+        calories: Math.max(0, Math.round(num(d.calories))),
+        protein: Math.max(0, round1n(num(d.protein))),
+        carbs: Math.max(0, round1n(num(d.carbs))),
+        fat: Math.max(0, round1n(num(d.fat))),
+        time: timeStr,
+        fromAi: true
+      };
+      state.entries.push(entry);
+      if(d.remember){
+        addLibraryFood({
+          name: d.name || 'Food',
+          serving: 'as described',
+          calories: entry.calories,
+          protein: entry.protein,
+          carbs: entry.carbs,
+          fat: entry.fat
+        });
+      }
+    });
+    persistLog();
+    render();
+    state.aiDraft = [];
+    renderAiDraft();
+    setAiStatus('Added ' + count + (count === 1 ? ' item' : ' items') + " to today's log.", '');
+  }
+
+  el.aiGo.addEventListener('click', safe('aiGo (estimate macros)', function(){ estimateFood(); }));
+  el.aiInput.addEventListener('keydown', safe('aiInput keydown', function(ev){
+    if(ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)){ ev.preventDefault(); estimateFood(); }
+  }));
+  el.aiDraft.addEventListener('click', safe('aiDraft click (remove/add-all/discard)', function(ev){
+    var rm = ev.target.closest('[data-airemove]');
+    if(rm){
+      state.aiDraft.splice(parseInt(rm.getAttribute('data-airemove'), 10), 1);
+      renderAiDraft();
+      return;
+    }
+    if(ev.target.closest('[data-aiaddall]')){ commitAiDraft(); return; }
+    if(ev.target.closest('[data-aidiscard]')){ state.aiDraft = []; renderAiDraft(); return; }
+  }));
+  el.aiDraft.addEventListener('input', safe('aiDraft field edit', function(ev){
+    var input = ev.target;
+    var field = input.getAttribute('data-field');
+    var idxAttr = input.getAttribute('data-idx');
+    if(!field || idxAttr === null) return;
+    var d = state.aiDraft[parseInt(idxAttr, 10)];
+    if(!d) return;
+    if(field === 'name') d.name = input.value;
+    else if(field === 'remember') d.remember = input.checked;
+    else d[field] = num(input.value);
+  }));
+
+  // ---------- Persistence ----------
+  function setSaveNote(){
+    if(state.dbReady){
+      el.saveNote.textContent = 'Synced to Vital Ascent Coaching cloud';
+      el.saveNote.className = 'save-note ok';
+    } else {
+      el.saveNote.textContent = 'Saved to this browser only — cloud sync unavailable';
+      el.saveNote.className = 'save-note local';
+    }
+  }
+
+  // Writes are chained so they never fire concurrently (avoids the store
+  // seeing two overlapping set() calls to the same document), and counted
+  // while in flight as a cheap first line of defense for goals — see
+  // loadGoals/loadLog for the (stronger, data-based) guard against a slow
+  // read clobbering a newer local edit.
+  function persistGoals(){
+    saveLocal(LS_GOALS, state.goals);
+    if(state.db){
+      var db = state.db;
+      var payload = state.goals;
+      state.pendingGoalWrites++;
+      state.goalsWriteChain = state.goalsWriteChain
+        .then(function(){ return db.doc('settings/goals').set(payload); })
+        .catch(function(e){ state.lastError = 'goals save failed: ' + describeErr(e); renderDebug(); })
+        .then(function(){ state.pendingGoalWrites = Math.max(0, state.pendingGoalWrites - 1); });
+    }
+  }
+
+  function persistLog(){
+    var date = state.date;
+    saveLocalLog(date, { entries: state.entries });
+    if(state.db){
+      var db = state.db;
+      var payload = { date: date, entries: state.entries };
+      state.pendingLogWrites++;
+      state.logWriteChain = state.logWriteChain
+        .then(function(){ return db.doc('logs/' + date).set(payload); })
+        .catch(function(e){ state.lastError = 'log save failed: ' + describeErr(e); renderDebug(); })
+        .then(function(){ state.pendingLogWrites = Math.max(0, state.pendingLogWrites - 1); });
+    }
+  }
+
+  // ---------- Date navigation ----------
+  function goToDate(newDate){
+    state.date = newDate;
+    // seed from local cache instantly, then reconcile with the cloud copy
+    var cached = loadLocalLog(state.date);
+    state.entries = cached.entries || [];
+    render();
+    loadLog();
+  }
+
+  el.prevDay.addEventListener('click', safe('prevDay', function(){
+    var d = parseDate(state.date); d.setDate(d.getDate()-1);
+    goToDate(fmtDate(d));
+  }));
+  el.nextDay.addEventListener('click', safe('nextDay', function(){
+    var d = parseDate(state.date); d.setDate(d.getDate()+1);
+    goToDate(fmtDate(d));
+  }));
+  el.datePicker.addEventListener('change', safe('datePicker', function(){
+    if(el.datePicker.value) goToDate(el.datePicker.value);
+  }));
+
+  // ---------- Goals panel ----------
+  el.goalsToggle.addEventListener('click', safe('goalsToggle', function(){
+    var open = el.goalsPanel.classList.toggle('open');
+    el.goalsToggle.textContent = open ? 'Close goal editor' : 'Edit daily goals';
+  }));
+  el.goalsSave.addEventListener('click', safe('goalsSave', function(){
+    state.goals = {
+      calories: Math.max(0, Math.round(num(el.goalCalories.value)) || 0),
+      protein: Math.max(0, Math.round(num(el.goalProtein.value)) || 0),
+      carbs: Math.max(0, Math.round(num(el.goalCarbs.value)) || 0),
+      fat: Math.max(0, Math.round(num(el.goalFat.value)) || 0)
+    };
+    persistGoals();
+    render();
+    el.goalsToggle.textContent = 'Edit daily goals';
+    el.goalsPanel.classList.remove('open');
+  }));
+
+  // ---------- Food library UI ----------
+  el.libNewToggle.addEventListener('click', safe('libNewToggle', function(){
+    var open = el.libNewForm.classList.toggle('open');
+    el.libNewToggle.textContent = open ? 'Close' : '+ New food';
+    if(open) el.lfName.focus();
+  }));
+
+  el.lfSave.addEventListener('click', safe('lfSave (save to library)', function(){
+    var name = el.lfName.value.trim();
+    var cal = el.lfCal.value;
+    if(!name){ el.lfErr.textContent = 'Enter a food name.'; el.lfName.focus(); return; }
+    if(cal === '' || num(cal) < 0){ el.lfErr.textContent = 'Enter calories per serving.'; el.lfCal.focus(); return; }
+    el.lfErr.textContent = '';
+
+    addLibraryFood({
+      name: name,
+      serving: el.lfServing.value.trim() || '1 serving',
+      calories: num(cal),
+      protein: num(el.lfProtein.value),
+      carbs: num(el.lfCarbs.value),
+      fat: num(el.lfFat.value)
+    });
+
+    el.lfName.value = '';
+    el.lfServing.value = '';
+    el.lfCal.value = '';
+    el.lfProtein.value = '';
+    el.lfCarbs.value = '';
+    el.lfFat.value = '';
+    el.lfName.focus();
+  }));
+
+  el.libSearch.addEventListener('input', safe('libSearch', function(){
+    state.libFilter = el.libSearch.value;
+    renderLibrary();
+  }));
+
+  el.libList.addEventListener('input', safe('libList servings input', function(ev){
+    var input = ev.target.closest('.lib-servings');
+    if(!input) return;
+    var row = input.closest('.lib-row');
+    var id = row && row.getAttribute('data-id');
+    var item = state.library.find(function(it){ return it.id === id; });
+    if(!item) return;
+    var servings = num(input.value);
+    if(servings < 0) servings = 0;
+    var span = row.querySelector('.lib-computed');
+    if(span) span.textContent = Math.round(num(item.calories) * servings) + ' kcal';
+  }));
+
+  // The whole row logs the food (matching the "tap a saved food to log it"
+  // hint) — only the delete button and the servings box opt out of that,
+  // so editing a serving count or removing a food doesn't also add it.
+  function addRowToLog(row, addBtn){
+    var id = row.getAttribute('data-id');
+    var item = state.library.find(function(it){ return it.id === id; });
+    if(!item) return;
+    var servingsInput = row.querySelector('.lib-servings');
+    var servings = servingsInput ? num(servingsInput.value) : 1;
+    if(!(servings > 0)) servings = 1;
+    addFromLibrary(item, servings);
+
+    if(!addBtn) addBtn = row.querySelector('[data-libadd]');
+    if(addBtn){
+      addBtn.textContent = 'Added';
+      addBtn.classList.add('just-added');
+      setTimeout(function(){ addBtn.textContent = 'Add'; addBtn.classList.remove('just-added'); }, 900);
+    }
+  }
+
+  el.libList.addEventListener('click', safe('libList click (add/delete)', function(ev){
+    var delBtn = ev.target.closest('[data-libdel]');
+    if(delBtn){
+      deleteLibraryFood(delBtn.getAttribute('data-libdel'));
+      return;
+    }
+    if(ev.target.closest('.lib-servings')) return; // let the number box handle its own click/focus
+
+    var row = ev.target.closest('.lib-row');
+    if(!row) return;
+    addRowToLog(row, ev.target.closest('[data-libadd]'));
+  }));
+
+  el.libList.addEventListener('keydown', safe('libList keydown', function(ev){
+    if(ev.key !== 'Enter' && ev.key !== ' ') return;
+    if(ev.target.closest('.lib-servings, [data-libdel], [data-libadd]')) return; // those handle their own activation
+    var row = ev.target.closest('.lib-row');
+    if(!row) return;
+    ev.preventDefault();
+    addRowToLog(row, null);
+  }));
+
+  // ---------- Entry form ----------
+  el.entryForm.addEventListener('submit', safe('entryForm submit (custom entry)', function(ev){
+    ev.preventDefault();
+    var name = el.fName.value.trim();
+    var cal = el.fCal.value;
+    if(!name){ el.formErr.textContent = 'Enter a food name.'; el.fName.focus(); return; }
+    if(cal === '' || num(cal) < 0){ el.formErr.textContent = 'Enter calories (0 or more).'; el.fCal.focus(); return; }
+    el.formErr.textContent = '';
+
+    var now = new Date();
+    var entry = {
+      id: 'e_' + now.getTime() + '_' + Math.random().toString(36).slice(2,7),
+      name: name,
+      calories: num(cal),
+      protein: num(el.fProtein.value),
+      carbs: num(el.fCarbs.value),
+      fat: num(el.fFat.value),
+      time: String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0')
+    };
+    state.entries.push(entry);
+    persistLog();
+    render();
+
+    el.entryForm.reset();
+    el.fName.focus();
+  }));
+
+  el.logList.addEventListener('click', safe('logList click (delete entry)', function(ev){
+    var btn = ev.target.closest('[data-del]');
+    if(!btn) return;
+    var id = btn.getAttribute('data-del');
+    state.entries = state.entries.filter(function(e){ return e.id !== id; });
+    persistLog();
+    render();
+  }));
+
+  // ---------- db capability wiring ----------
+  // Deliberately ONE-SHOT reads (get), not a persistent onSnapshot listener.
+  // Every local add/delete already updates state.entries/state.goals
+  // optimistically and writes the FULL current value straight to the store
+  // (see persistLog/persistGoals), so nothing here needs to "sync back" a
+  // change we just made ourselves — a live listener only added a way for a
+  // late-arriving read to race a fresh local edit and stomp it. We still
+  // read once on load and on date-change so a returning visit (or a jump to
+  // a past day) picks up what's saved.
+  function loadGoals(){
+    if(!state.db) return;
+    state.db.doc('settings/goals').get().then(function(snap){
+      if(state.pendingGoalWrites > 0) return; // a local save is already ahead of this read
+      if(snap.exists){
+        var d = snap.data();
+        state.goals = {
+          calories: num(d.calories) || DEFAULT_GOALS.calories,
+          protein: num(d.protein) || DEFAULT_GOALS.protein,
+          carbs: num(d.carbs) || DEFAULT_GOALS.carbs,
+          fat: num(d.fat) || DEFAULT_GOALS.fat
+        };
+        saveLocal(LS_GOALS, state.goals);
+      } else {
+        // no goals saved yet — seed the store with local/default
+        state.db.doc('settings/goals').set(state.goals).catch(function(e){ state.lastError = 'goals seed failed: ' + describeErr(e); renderDebug(); });
+      }
+      render();
+    }).catch(function(e){ state.lastError = 'goals load failed: ' + describeErr(e); renderDebug(); });
+  }
+
+  function loadLog(){
+    if(!state.db) return;
+    var thisDate = state.date;
+    state.db.doc('logs/' + thisDate).get().then(function(snap){
+      if(state.date !== thisDate) return; // user navigated away before this read landed
+      // snap.data() (and everything inside it) is FROZEN by the db capability —
+      // it must never be assigned straight into local state, or any later
+      // .push()/.splice() onto that array throws "object is not extensible".
+      // Clone the array and every entry object inside it into plain, mutable copies.
+      var rawEntries = (snap.exists && Array.isArray(snap.data().entries)) ? snap.data().entries : [];
+      var incoming = rawEntries.map(function(e){ return Object.assign({}, e); });
+      // Never let a read shrink what's already on screen. A get() can take
+      // a while to round-trip, and if it was sent before an add/delete that
+      // has since finished, its result is stale by the time it lands — in
+      // which case treat LOCAL as the source of truth and push it up,
+      // rather than silently erasing entries the person just typed in.
+      if(incoming.length < state.entries.length){
+        persistLog();
+        return;
+      }
+      state.entries = incoming;
+      saveLocalLog(thisDate, { entries: state.entries });
+      render();
+    }).catch(function(e){ state.lastError = 'log load failed: ' + describeErr(e); renderDebug(); });
+  }
+
+  function initDb(){
+    if(!window.claude || typeof window.claude.use !== 'function'){
+      state.dbStatus = 'unavailable (no claude runtime)';
+      setSaveNote(); renderDebug();
+      return;
+    }
+    window.claude.use('db').then(function(db){
+      if(!db){ state.dbStatus = 'unavailable (use("db") returned null)'; setSaveNote(); renderDebug(); return; }
+      state.db = db;
+      state.dbReady = true;
+      state.dbStatus = 'connected';
+      setSaveNote(); renderDebug();
+      loadGoals();
+      loadLog();
+      loadLibrary();
+    }).catch(function(e){ state.dbStatus = 'unavailable (' + describeErr(e) + ')'; setSaveNote(); renderDebug(); });
+  }
+
+  // ---------- Init ----------
+  try{
+    render();
+    renderLibrary();
+    renderGw();
+    setSaveNote();
+    initDb();
+    initSample();
+  }catch(err){
+    if(window.__vaReportError) window.__vaReportError('Failed to start up', (err && err.stack) || (err && err.message) || String(err));
+    if(window.console && console.error) console.error('[Vital Ascent] init', err);
+  }
+
+})();
+</script>
