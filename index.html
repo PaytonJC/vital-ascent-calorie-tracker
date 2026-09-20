@@ -1,3 +1,4 @@
+
 <title>Vital Ascent Tracker</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,900&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -259,6 +260,38 @@
   }
   .gw-note{ font-size:0.72rem; color:var(--text-faint); margin-top:12px; line-height:1.4; }
 
+  /* ---------- Goal calculator ---------- */
+  .calc-card{ padding:22px 26px 24px; }
+  .calc-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .calc-panel{ display:none; margin-top:18px; padding-top:18px; border-top:1px solid var(--border-soft); }
+  .calc-panel.open{ display:block; }
+  .calc-intro{ font-size:0.82rem; color:var(--text-dim); line-height:1.5; margin:0 0 16px; max-width:640px; }
+  .calc-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+  @media (max-width:760px){ .calc-grid{ grid-template-columns:1fr 1fr; } }
+  .calc-grid .goal-field select,
+  .calc-grid .goal-field input{
+    width:100%; background:var(--surface-3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--radius-sm); padding:9px 10px; font-size:0.88rem;
+  }
+  .calc-hpair{ display:flex; gap:6px; }
+  .calc-err{ font-size:0.76rem; color:var(--danger); margin-top:12px; min-height:1em; }
+  .calc-result{ margin-top:6px; }
+  .calc-stats{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:16px; }
+  @media (max-width:640px){ .calc-stats{ grid-template-columns:1fr; } }
+  .calc-stat{ padding:14px 16px; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:var(--radius-md); text-align:center; }
+  .calc-stat .n{ font-family:'Fraunces', serif; font-weight:700; font-size:1.5rem; color:var(--gold-bright); }
+  .calc-stat .l{ font-size:0.66rem; color:var(--text-faint); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
+  .calc-macros{ font-size:0.84rem; color:var(--text-dim); margin-bottom:14px; }
+  .calc-macros b{ color:var(--text); }
+  .calc-note{ font-size:0.76rem; color:var(--warning); margin-bottom:14px; line-height:1.45; }
+  .calc-avg{
+    font-size:0.86rem; color:var(--text); background:var(--surface-2);
+    border:1px solid var(--border-soft); border-radius:var(--radius-md);
+    padding:12px 14px; line-height:1.45;
+  }
+  .calc-avg b{ color:var(--gold-bright); }
+  .calc-avg.warn{ color:var(--text-dim); }
+
   /* ---------- Entry form ---------- */
   .form-card{ padding:22px 26px 24px; }
   .form-title-hint{ font-size:0.74rem; color:var(--text-faint); font-weight:400; margin-left:8px; }
@@ -412,6 +445,97 @@
     </div>
   </section>
 
+  <section class="card calc-card" id="calcCard">
+    <div class="calc-head">
+      <div class="form-title" style="margin-bottom:0;">Goal Calculator<span class="form-title-hint">not sure what to set your goals to? start here</span></div>
+      <button type="button" class="goals-toggle" id="calcToggle" style="border-bottom:none;">Calculate my goals</button>
+    </div>
+    <div class="calc-panel" id="calcPanel">
+      <p class="calc-intro">Answer a few quick questions and we'll estimate your maintenance calories (the number you'd eat to hold steady), then suggest a daily calorie and macro target based on your goal. It's a science-based starting point — everyone's metabolism is a little different, so treat it as a place to begin and adjust from as you go.</p>
+      <div class="calc-grid">
+        <div class="goal-field">
+          <label for="cSex">Sex</label>
+          <select id="cSex"><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+        <div class="goal-field"><label for="cAge">Age</label><input type="number" id="cAge" min="13" max="100" step="1" placeholder="30"></div>
+        <div class="goal-field">
+          <label for="cUnits">Units</label>
+          <select id="cUnits"><option value="us">US (lb, ft/in)</option><option value="metric">Metric (kg, cm)</option></select>
+        </div>
+        <div class="goal-field"><label for="cWeight">Weight (lb)</label><input type="number" id="cWeight" min="0" step="0.1" placeholder="165"></div>
+        <div class="goal-field" id="cHeightUsWrap">
+          <label>Height (ft / in)</label>
+          <div class="calc-hpair">
+            <input type="number" id="cHeightFt" min="0" max="8" step="1" placeholder="5">
+            <input type="number" id="cHeightIn" min="0" max="11" step="1" placeholder="7">
+          </div>
+        </div>
+        <div class="goal-field" id="cHeightMetricWrap" style="display:none;"><label for="cHeightCm">Height (cm)</label><input type="number" id="cHeightCm" min="0" step="1" placeholder="170"></div>
+        <div class="goal-field">
+          <label for="cActivity">Activity level</label>
+          <select id="cActivity">
+            <option value="1.2">Sedentary — little or no exercise</option>
+            <option value="1.375">Light — exercise 1–3 days/wk</option>
+            <option value="1.55" selected>Moderate — exercise 3–5 days/wk</option>
+            <option value="1.725">Active — exercise 6–7 days/wk</option>
+            <option value="1.9">Very active — hard daily training</option>
+          </select>
+        </div>
+        <div class="goal-field">
+          <label for="cGoal">Goal</label>
+          <select id="cGoal">
+            <option value="lose">Lose weight</option>
+            <option value="maintain" selected>Maintain weight</option>
+            <option value="gain">Gain weight / build muscle</option>
+          </select>
+        </div>
+        <div class="goal-field" id="cRateWrap" style="display:none;">
+          <label for="cRate">Pace</label>
+          <select id="cRate">
+            <option value="0.5">Gradual — ~0.5 lb/wk</option>
+            <option value="1" selected>Moderate — ~1 lb/wk</option>
+            <option value="2">Aggressive — ~2 lb/wk</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-err" id="calcErr"></div>
+      <button type="button" class="add-btn" id="calcRun">Calculate my numbers</button>
+      <div class="calc-result" id="calcResult"></div>
+    </div>
+  </section>
+
+  <section class="card calc-card" id="adjustCard">
+    <div class="calc-head">
+      <div class="form-title" style="margin-bottom:0;">Adjust My Calories<span class="form-title-hint">already tracking? recalibrate from your real results</span></div>
+      <button type="button" class="goals-toggle" id="adjustToggle" style="border-bottom:none;">Adjust my calories</button>
+    </div>
+    <div class="calc-panel" id="adjustPanel">
+      <p class="calc-intro">Formulas are a starting point — actual tracked results are the best signal of what's really working. This looks at what's been eaten on days that were logged, then suggests a new target based on the goal.</p>
+      <div class="calc-avg" id="adjustAvg">Checking recent logs…</div>
+      <div class="calc-grid" style="margin-top:14px;">
+        <div class="goal-field">
+          <label for="aGoal">Goal</label>
+          <select id="aGoal">
+            <option value="lose">Lose weight</option>
+            <option value="maintain" selected>Maintain weight</option>
+            <option value="gain">Gain weight / build muscle</option>
+          </select>
+        </div>
+        <div class="goal-field" id="aRateWrap" style="display:none;">
+          <label for="aRate">Pace</label>
+          <select id="aRate">
+            <option value="0.5">Gradual — ~0.5 lb/wk</option>
+            <option value="1" selected>Moderate — ~1 lb/wk</option>
+            <option value="2">Aggressive — ~2 lb/wk</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-err" id="adjustErr"></div>
+      <button type="button" class="add-btn" id="adjustRun" disabled>Recalculate my target</button>
+      <div class="calc-result" id="adjustResult"></div>
+    </div>
+  </section>
+
   <section class="card ai-card" id="aiCard">
     <div class="form-title">AI quick log<span class="form-title-hint">describe what you ate — Claude estimates the macros</span></div>
     <div class="ai-input-row">
@@ -529,9 +653,11 @@
 (function(){
   "use strict";
 
-  var BUILD_TAG = '2026-09-04.3'; // bump on every publish — lets us confirm which version is actually loaded
+  var BUILD_TAG = '2026-09-19.1'; // bump on every publish — lets us confirm which version is actually loaded
   var DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 200, fat: 65 };
+  var DEFAULT_PROFILE = { sex:'male', age:'', units:'us', weight:'', heightFt:'', heightIn:'', heightCm:'', activity:'1.55', goal:'maintain', rate:'1' };
   var LS_GOALS = 'va_goals_v1';
+  var LS_PROFILE = 'va_profile_v1';
   var LS_LOG_PREFIX = 'va_log_v1_';
   var LS_LIBRARY = 'va_library_v1';
 
@@ -600,6 +726,13 @@
   var state = {
     date: TODAY,
     goals: loadLocal(LS_GOALS, DEFAULT_GOALS),
+    profile: Object.assign({}, DEFAULT_PROFILE, loadLocal(LS_PROFILE, {})),
+    calcResult: null,
+    userToggledCalc: false,
+    recentAvg: null,
+    recentDaysList: [],
+    adjustResult: null,
+    adjustInited: false,
     entries: (loadLocalLog(TODAY).entries || []),
     library: loadLocal(LS_LIBRARY, []),
     libFilter: '',
@@ -612,6 +745,8 @@
     pendingLogWrites: 0,
     goalsWriteChain: Promise.resolve(),
     pendingGoalWrites: 0,
+    profileWriteChain: Promise.resolve(),
+    pendingProfileWrites: 0,
     sample: null,
     aiStatus: 'checking', // 'checking' | 'ready' | 'hidden'
     aiBusy: false,
@@ -668,6 +803,33 @@
     goalCarbs: document.getElementById('goalCarbs'),
     goalFat: document.getElementById('goalFat'),
     goalsSave: document.getElementById('goalsSave'),
+    calcToggle: document.getElementById('calcToggle'),
+    calcPanel: document.getElementById('calcPanel'),
+    cSex: document.getElementById('cSex'),
+    cAge: document.getElementById('cAge'),
+    cUnits: document.getElementById('cUnits'),
+    cWeight: document.getElementById('cWeight'),
+    cHeightUsWrap: document.getElementById('cHeightUsWrap'),
+    cHeightFt: document.getElementById('cHeightFt'),
+    cHeightIn: document.getElementById('cHeightIn'),
+    cHeightMetricWrap: document.getElementById('cHeightMetricWrap'),
+    cHeightCm: document.getElementById('cHeightCm'),
+    cActivity: document.getElementById('cActivity'),
+    cGoal: document.getElementById('cGoal'),
+    cRateWrap: document.getElementById('cRateWrap'),
+    cRate: document.getElementById('cRate'),
+    calcErr: document.getElementById('calcErr'),
+    calcRun: document.getElementById('calcRun'),
+    calcResult: document.getElementById('calcResult'),
+    adjustToggle: document.getElementById('adjustToggle'),
+    adjustPanel: document.getElementById('adjustPanel'),
+    adjustAvg: document.getElementById('adjustAvg'),
+    aGoal: document.getElementById('aGoal'),
+    aRateWrap: document.getElementById('aRateWrap'),
+    aRate: document.getElementById('aRate'),
+    adjustErr: document.getElementById('adjustErr'),
+    adjustRun: document.getElementById('adjustRun'),
+    adjustResult: document.getElementById('adjustResult'),
     entryForm: document.getElementById('entryForm'),
     fName: document.getElementById('fName'),
     fCal: document.getElementById('fCal'),
@@ -1023,6 +1185,356 @@
     gwAddRow(row, null);
   }));
 
+  // ---------- Goal calculator ----------
+  // A short questionnaire (sex, age, height, weight, activity, goal, pace)
+  // that estimates maintenance calories (TDEE) via the Mifflin-St Jeor
+  // equation and suggests a daily calorie + macro target from it. Purely
+  // local arithmetic — no AI call, no db required — so it works identically
+  // on the no-account client link. Answers are remembered (localStorage,
+  // and settings/profile in the cloud when db is available) so a returning
+  // person sees their last inputs and can recalculate as their weight changes.
+  function goalsAreDefault(g){
+    return num(g.calories) === DEFAULT_GOALS.calories && num(g.protein) === DEFAULT_GOALS.protein &&
+      num(g.carbs) === DEFAULT_GOALS.carbs && num(g.fat) === DEFAULT_GOALS.fat;
+  }
+
+  function syncCalcUnits(){
+    var metric = el.cUnits.value === 'metric';
+    el.cHeightUsWrap.style.display = metric ? 'none' : '';
+    el.cHeightMetricWrap.style.display = metric ? '' : 'none';
+    var wLabel = document.querySelector('label[for="cWeight"]');
+    if(wLabel) wLabel.textContent = metric ? 'Weight (kg)' : 'Weight (lb)';
+  }
+
+  function syncCalcGoal(){
+    el.cRateWrap.style.display = el.cGoal.value === 'maintain' ? 'none' : '';
+  }
+
+  function populateCalcForm(){
+    var p = state.profile;
+    el.cSex.value = p.sex || 'male';
+    el.cAge.value = p.age || '';
+    el.cUnits.value = p.units || 'us';
+    el.cWeight.value = p.weight || '';
+    el.cHeightFt.value = p.heightFt || '';
+    el.cHeightIn.value = p.heightIn || '';
+    el.cHeightCm.value = p.heightCm || '';
+    el.cActivity.value = p.activity || '1.55';
+    el.cGoal.value = p.goal || 'maintain';
+    el.cRate.value = p.rate || '1';
+    syncCalcUnits();
+    syncCalcGoal();
+  }
+
+  function openCalcPanel(){
+    el.calcPanel.classList.add('open');
+    el.calcToggle.textContent = 'Close calculator';
+  }
+
+  var autoOpenDecided = false;
+  function maybeAutoOpenCalculator(){
+    if(autoOpenDecided || state.userToggledCalc) return;
+    if(state.dbStatus === 'connecting') return; // still waiting on the real cloud-saved values — don't guess yet
+    autoOpenDecided = true;
+    if(!state.profile.age && goalsAreDefault(state.goals)) openCalcPanel();
+  }
+
+  function runCalculator(){
+    el.calcErr.textContent = '';
+    var sex = el.cSex.value === 'female' ? 'female' : 'male';
+    var age = num(el.cAge.value);
+    var metric = el.cUnits.value === 'metric';
+    var weightRaw = num(el.cWeight.value);
+    var weightLb, weightKg, heightCm;
+
+    if(metric){
+      weightKg = weightRaw;
+      weightLb = weightKg / 0.453592;
+      heightCm = num(el.cHeightCm.value);
+    } else {
+      weightLb = weightRaw;
+      weightKg = weightLb * 0.453592;
+      heightCm = (num(el.cHeightFt.value) * 12 + num(el.cHeightIn.value)) * 2.54;
+    }
+
+    if(!(age >= 13 && age <= 100)){ el.calcErr.textContent = 'Enter an age between 13 and 100.'; el.cAge.focus(); return; }
+    if(!(weightRaw > 0)){ el.calcErr.textContent = 'Enter your current weight.'; el.cWeight.focus(); return; }
+    if(!(heightCm > 0)){ el.calcErr.textContent = 'Enter your height.'; (metric ? el.cHeightCm : el.cHeightFt).focus(); return; }
+
+    var activity = num(el.cActivity.value) || 1.55;
+    var goal = el.cGoal.value;
+    var rate = num(el.cRate.value) || 1;
+
+    // Mifflin-St Jeor — the most widely validated resting-metabolism estimate
+    // in general use, then scaled up by an activity multiplier to approximate
+    // total daily energy expenditure (TDEE), i.e. maintenance calories.
+    var bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + (sex === 'male' ? 5 : -161);
+    var tdee = bmr * activity;
+
+    // ~3500 kcal per pound of body weight, spread across the week, is the
+    // standard rule of thumb for translating a weekly rate of change into a
+    // daily calorie adjustment. Gaining leans smaller (half the deficit-side
+    // rate) since a slower surplus means more of it goes to muscle, less to fat.
+    var adjust = 0;
+    if(goal === 'lose') adjust = -(rate * 500);
+    else if(goal === 'gain') adjust = rate * 500 * 0.5;
+    var rawTarget = tdee + adjust;
+
+    var floor = Math.max(bmr * 0.8, sex === 'male' ? 1500 : 1200);
+    var note = '';
+    var targetCalories = rawTarget;
+    if(targetCalories < floor){
+      targetCalories = floor;
+      note = 'Your selected pace would land below a safe daily minimum, so we raised your target to a safer floor. Consider a more gradual pace, or check in with a doctor or dietitian before going lower.';
+    }
+    targetCalories = Math.round(targetCalories);
+
+    var proteinPerLb = goal === 'maintain' ? 0.8 : 1.0;
+    var protein = Math.round(weightLb * proteinPerLb);
+    var fat = Math.round((targetCalories * 0.25) / 9);
+    var carbsCals = targetCalories - (protein * 4) - (fat * 9);
+    if(carbsCals < 0){
+      // Extreme edge case — very low target combined with a high bodyweight-
+      // based protein number. Ease fat down first rather than let carbs go negative.
+      fat = Math.max(0, Math.round(((targetCalories - protein * 4) / 9) * 0.5));
+      carbsCals = targetCalories - (protein * 4) - (fat * 9);
+    }
+    var carbs = Math.round(Math.max(0, carbsCals) / 4);
+
+    state.calcResult = { calories: targetCalories, protein: protein, carbs: carbs, fat: fat, bmr: Math.round(bmr), tdee: Math.round(tdee) };
+    state.profile = {
+      sex: sex, age: el.cAge.value, units: el.cUnits.value, weight: el.cWeight.value,
+      heightFt: el.cHeightFt.value, heightIn: el.cHeightIn.value, heightCm: el.cHeightCm.value,
+      activity: el.cActivity.value, goal: goal, rate: el.cRate.value
+    };
+    persistProfile();
+    renderCalcResult(note, goal);
+  }
+
+  function renderCalcResult(note, goal){
+    if(!el.calcResult) return;
+    var r = state.calcResult;
+    if(!r){ el.calcResult.innerHTML = ''; return; }
+    var goalLabel = { lose: 'Target to lose', maintain: 'Target to maintain', gain: 'Target to gain' }[goal] || 'Suggested target';
+    el.calcResult.innerHTML =
+      '<div class="calc-stats">' +
+        '<div class="calc-stat"><div class="n mono">' + r.bmr + '</div><div class="l">Resting (BMR)</div></div>' +
+        '<div class="calc-stat"><div class="n mono">' + r.tdee + '</div><div class="l">Maintenance (TDEE)</div></div>' +
+        '<div class="calc-stat"><div class="n mono">' + r.calories + '</div><div class="l">' + escapeHtml(goalLabel) + '</div></div>' +
+      '</div>' +
+      '<div class="calc-macros">Suggested daily split: <b>' + r.protein + 'g</b> protein · <b>' + r.carbs + 'g</b> carbs · <b>' + r.fat + 'g</b> fat</div>' +
+      (note ? '<div class="calc-note">' + escapeHtml(note) + '</div>' : '') +
+      '<button type="button" class="add-btn" data-calcapply>Apply to my daily goals</button>';
+  }
+
+  function applyCalcResult(){
+    if(!state.calcResult) return;
+    state.goals = {
+      calories: state.calcResult.calories,
+      protein: state.calcResult.protein,
+      carbs: state.calcResult.carbs,
+      fat: state.calcResult.fat
+    };
+    persistGoals();
+    render();
+    var btn = el.calcResult.querySelector('[data-calcapply]');
+    if(btn){
+      btn.textContent = 'Applied ✓';
+      btn.disabled = true;
+      setTimeout(function(){ if(btn){ btn.textContent = 'Apply to my daily goals'; btn.disabled = false; } }, 1600);
+    }
+  }
+
+  el.calcToggle.addEventListener('click', safe('calcToggle', function(){
+    state.userToggledCalc = true;
+    var open = el.calcPanel.classList.toggle('open');
+    el.calcToggle.textContent = open ? 'Close calculator' : 'Calculate my goals';
+  }));
+  el.cUnits.addEventListener('change', safe('cUnits change', function(){ syncCalcUnits(); }));
+  el.cGoal.addEventListener('change', safe('cGoal change', function(){ syncCalcGoal(); }));
+  el.calcRun.addEventListener('click', safe('calcRun', function(){ runCalculator(); }));
+  el.calcResult.addEventListener('click', safe('calcResult click (apply)', function(ev){
+    if(ev.target.closest('[data-calcapply]')) applyCalcResult();
+  }));
+
+  // ---------- Adjust My Calories ----------
+  // A second, complementary way to land on a daily target: instead of
+  // estimating from body stats, look at what's actually been eaten on days
+  // that were logged (the realest signal there is) and suggest a new target
+  // from that real average plus the same rate-of-change rule the calculator
+  // uses. Works with zero setup on the no-db client link (reads the
+  // already-existing per-day localStorage logs) and additionally checks the
+  // cloud log collection when db is available, preferring whichever has data.
+  var LOOKBACK_DAYS = 14;
+  var MIN_DAYS_FOR_ADJUST = 3;
+
+  function scanLocalLogs(){
+    var out = [];
+    try{
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf(LS_LOG_PREFIX) === 0){
+          var date = k.slice(LS_LOG_PREFIX.length);
+          var data = loadLocal(k, null);
+          if(data && Array.isArray(data.entries) && data.entries.length){
+            var cal = data.entries.reduce(function(s, e){ return s + num(e.calories); }, 0);
+            if(cal > 0) out.push({ date: date, calories: cal });
+          }
+        }
+      }
+    }catch(e){}
+    out.sort(function(a, b){ return b.date.localeCompare(a.date); });
+    return out;
+  }
+
+  function fetchRecentDays(){
+    var localDays = scanLocalLogs();
+    if(!state.db) return Promise.resolve(localDays);
+    return state.db.collection('logs').orderBy('date', 'desc').limit(21).get().then(function(snap){
+      var fromDb = snap.docs.map(function(doc){
+        var d = doc.data() || {};
+        var entries = Array.isArray(d.entries) ? d.entries : [];
+        var cal = entries.reduce(function(s, e){ return s + num(e.calories); }, 0);
+        return { date: String(d.date || doc.id), calories: cal };
+      }).filter(function(x){ return x.calories > 0; });
+      return fromDb.length >= localDays.length ? fromDb : localDays;
+    }).catch(function(){ return localDays; });
+  }
+
+  function renderAdjustAvg(){
+    if(!el.adjustAvg) return;
+    var used = state.recentDaysList.slice(0, LOOKBACK_DAYS);
+    if(used.length < MIN_DAYS_FOR_ADJUST){
+      el.adjustAvg.className = 'calc-avg warn';
+      el.adjustAvg.textContent = 'Log at least ' + MIN_DAYS_FOR_ADJUST + ' days before adjusting from results — ' +
+        used.length + (used.length === 1 ? ' day is' : ' days are') + ' logged so far.';
+      el.adjustRun.disabled = true;
+      state.recentAvg = null;
+      return;
+    }
+    var avg = used.reduce(function(s, d){ return s + d.calories; }, 0) / used.length;
+    state.recentAvg = Math.round(avg);
+    el.adjustAvg.className = 'calc-avg';
+    el.adjustAvg.innerHTML = 'Average intake over the last <b>' + used.length + '</b> logged day' + (used.length === 1 ? '' : 's') +
+      ': <b>' + state.recentAvg + ' kcal/day</b>';
+    el.adjustRun.disabled = false;
+  }
+
+  function initAdjust(){
+    if(state.profile && state.profile.goal) el.aGoal.value = state.profile.goal;
+    syncAdjustGoal();
+    fetchRecentDays().then(function(days){
+      state.recentDaysList = days;
+      renderAdjustAvg();
+    });
+  }
+
+  function syncAdjustGoal(){
+    el.aRateWrap.style.display = el.aGoal.value === 'maintain' ? 'none' : '';
+  }
+
+  function runAdjust(){
+    el.adjustErr.textContent = '';
+    if(!(state.recentAvg > 0)){ el.adjustErr.textContent = "Not enough recently logged days yet."; return; }
+    var goal = el.aGoal.value;
+    var rate = num(el.aRate.value) || 1;
+
+    var adjust = 0;
+    if(goal === 'lose') adjust = -(rate * 500);
+    else if(goal === 'gain') adjust = rate * 500 * 0.5;
+    var newCalories = Math.round(state.recentAvg + adjust);
+
+    // Safety floor — reuse a saved profile's BMR if we have one (same rule
+    // as the calculator above), otherwise fall back to a flat sane minimum.
+    var floor = 1200;
+    var pm = state.profile;
+    if(pm && num(pm.weight) > 0 && num(pm.age) > 0){
+      var wKg, hCm;
+      if(pm.units === 'metric'){ wKg = num(pm.weight); hCm = num(pm.heightCm); }
+      else { wKg = num(pm.weight) * 0.453592; hCm = (num(pm.heightFt) * 12 + num(pm.heightIn)) * 2.54; }
+      if(wKg > 0 && hCm > 0){
+        var bmr = (10 * wKg) + (6.25 * hCm) - (5 * num(pm.age)) + (pm.sex === 'female' ? -161 : 5);
+        floor = Math.max(bmr * 0.8, pm.sex === 'female' ? 1200 : 1500);
+      }
+    }
+    var note = '';
+    if(newCalories < floor){
+      newCalories = Math.round(floor);
+      note = 'That pace would land below a safe daily minimum, so we raised it to a safer floor. Consider a more gradual pace, or check in with a doctor or dietitian before going lower.';
+    }
+
+    // Macro rebalance: keep protein where the current goal already has it —
+    // protein needs don't shrink just because calories do, it's what
+    // protects muscle during a deficit — then split whatever calories
+    // remain between carbs and fat in their existing ratio to each other.
+    var g = state.goals;
+    var protein = num(g.protein);
+    var remain = newCalories - (protein * 4);
+    if(remain < newCalories * 0.15){
+      // Protein alone would eat almost the whole budget — scale it down
+      // instead of letting carbs/fat go to zero or negative.
+      protein = Math.round((newCalories * 0.35) / 4);
+      remain = newCalories - (protein * 4);
+    }
+    var existingCarbsCals = num(g.carbs) * 4, existingFatCals = num(g.fat) * 9;
+    var existingTotal = existingCarbsCals + existingFatCals;
+    var carbFrac = existingTotal > 0 ? existingCarbsCals / existingTotal : 0.55;
+    var carbs = Math.round(Math.max(0, remain * carbFrac) / 4);
+    var fat = Math.round(Math.max(0, remain * (1 - carbFrac)) / 9);
+
+    state.adjustResult = { calories: newCalories, protein: protein, carbs: carbs, fat: fat, from: state.recentAvg };
+    renderAdjustResult(note, goal);
+  }
+
+  function renderAdjustResult(note, goal){
+    if(!el.adjustResult) return;
+    var r = state.adjustResult;
+    if(!r){ el.adjustResult.innerHTML = ''; return; }
+    var delta = r.calories - r.from;
+    var goalLabel = { lose: 'New target to lose', maintain: 'New target to maintain', gain: 'New target to gain' }[goal] || 'New target';
+    el.adjustResult.innerHTML =
+      '<div class="calc-stats">' +
+        '<div class="calc-stat"><div class="n mono">' + r.from + '</div><div class="l">Recent average</div></div>' +
+        '<div class="calc-stat"><div class="n mono">' + r.calories + '</div><div class="l">' + escapeHtml(goalLabel) + '</div></div>' +
+        '<div class="calc-stat"><div class="n mono">' + (delta >= 0 ? '+' : '') + delta + '</div><div class="l">Change vs. average</div></div>' +
+      '</div>' +
+      '<div class="calc-macros">Suggested daily split: <b>' + r.protein + 'g</b> protein · <b>' + r.carbs + 'g</b> carbs · <b>' + r.fat + 'g</b> fat</div>' +
+      (note ? '<div class="calc-note">' + escapeHtml(note) + '</div>' : '') +
+      '<button type="button" class="add-btn" data-adjustapply>Apply to my daily goals</button>';
+  }
+
+  function applyAdjustResult(){
+    if(!state.adjustResult) return;
+    state.goals = {
+      calories: state.adjustResult.calories,
+      protein: state.adjustResult.protein,
+      carbs: state.adjustResult.carbs,
+      fat: state.adjustResult.fat
+    };
+    persistGoals();
+    render();
+    var btn = el.adjustResult.querySelector('[data-adjustapply]');
+    if(btn){
+      btn.textContent = 'Applied ✓';
+      btn.disabled = true;
+      setTimeout(function(){ if(btn){ btn.textContent = 'Apply to my daily goals'; btn.disabled = false; } }, 1600);
+    }
+  }
+
+  el.adjustToggle.addEventListener('click', safe('adjustToggle', function(){
+    var open = el.adjustPanel.classList.toggle('open');
+    el.adjustToggle.textContent = open ? 'Close' : 'Adjust my calories';
+    if(open && !state.adjustInited){
+      state.adjustInited = true;
+      initAdjust();
+    }
+  }));
+  el.aGoal.addEventListener('change', safe('aGoal change', function(){ syncAdjustGoal(); }));
+  el.adjustRun.addEventListener('click', safe('adjustRun', function(){ runAdjust(); }));
+  el.adjustResult.addEventListener('click', safe('adjustResult click (apply)', function(ev){
+    if(ev.target.closest('[data-adjustapply]')) applyAdjustResult();
+  }));
+
   // ---------- AI quick log ----------
   // Lets a person describe a meal in plain English ("two eggs and toast")
   // and has Claude — via the artifact's own `sample` capability, running on
@@ -1268,6 +1780,19 @@
     }
   }
 
+  function persistProfile(){
+    saveLocal(LS_PROFILE, state.profile);
+    if(state.db){
+      var db = state.db;
+      var payload = state.profile;
+      state.pendingProfileWrites++;
+      state.profileWriteChain = state.profileWriteChain
+        .then(function(){ return db.doc('settings/profile').set(payload); })
+        .catch(function(e){ state.lastError = 'profile save failed: ' + describeErr(e); renderDebug(); })
+        .then(function(){ state.pendingProfileWrites = Math.max(0, state.pendingProfileWrites - 1); });
+    }
+  }
+
   function persistLog(){
     var date = state.date;
     saveLocalLog(date, { entries: state.entries });
@@ -1480,6 +2005,24 @@
     }).catch(function(e){ state.lastError = 'goals load failed: ' + describeErr(e); renderDebug(); });
   }
 
+  function loadProfile(){
+    if(!state.db) return;
+    state.db.doc('settings/profile').get().then(function(snap){
+      if(state.pendingProfileWrites > 0) return; // a local save is already ahead of this read
+      if(snap.exists){
+        var d = snap.data();
+        state.profile = Object.assign({}, DEFAULT_PROFILE, {
+          sex: d.sex, age: d.age, units: d.units, weight: d.weight,
+          heightFt: d.heightFt, heightIn: d.heightIn, heightCm: d.heightCm,
+          activity: d.activity, goal: d.goal, rate: d.rate
+        });
+        saveLocal(LS_PROFILE, state.profile);
+        populateCalcForm();
+      }
+      maybeAutoOpenCalculator();
+    }).catch(function(e){ state.lastError = 'profile load failed: ' + describeErr(e); renderDebug(); });
+  }
+
   function loadLog(){
     if(!state.db) return;
     var thisDate = state.date;
@@ -1513,7 +2056,7 @@
       return;
     }
     window.claude.use('db').then(function(db){
-      if(!db){ state.dbStatus = 'unavailable (use("db") returned null)'; setSaveNote(); renderDebug(); return; }
+      if(!db){ state.dbStatus = 'unavailable (use("db") returned null)'; setSaveNote(); renderDebug(); maybeAutoOpenCalculator(); return; }
       state.db = db;
       state.dbReady = true;
       state.dbStatus = 'connected';
@@ -1521,7 +2064,8 @@
       loadGoals();
       loadLog();
       loadLibrary();
-    }).catch(function(e){ state.dbStatus = 'unavailable (' + describeErr(e) + ')'; setSaveNote(); renderDebug(); });
+      loadProfile();
+    }).catch(function(e){ state.dbStatus = 'unavailable (' + describeErr(e) + ')'; setSaveNote(); renderDebug(); maybeAutoOpenCalculator(); });
   }
 
   // ---------- Init ----------
@@ -1529,9 +2073,11 @@
     render();
     renderLibrary();
     renderGw();
+    populateCalcForm();
     setSaveNote();
     initDb();
     initSample();
+    maybeAutoOpenCalculator();
   }catch(err){
     if(window.__vaReportError) window.__vaReportError('Failed to start up', (err && err.stack) || (err && err.message) || String(err));
     if(window.console && console.error) console.error('[Vital Ascent] init', err);
